@@ -1,12 +1,12 @@
-# Deprecated Patterns & API Migrations in Jetpack Compose
+# Jetpack Compose 已弃用模式与 API 迁移
 
-This guide covers major API changes and deprecations in Compose's evolution. Each section shows the old pattern → new approach with migration notes.
+本指南涵盖 Compose 演进过程中的主要 API 变更和弃用。每节展示旧模式 → 新方法及迁移说明。
 
 ---
 
-## String-Based Routes → Type-Safe `@Serializable` Routes
+## 字符串路由 → 类型安全 `@Serializable` 路由
 
-**Old (pre-2.8):**
+**旧（pre-2.8）：**
 ```kotlin
 NavHost(navController, startDestination = "home") {
     composable("home") { HomeScreen() }
@@ -16,7 +16,7 @@ NavHost(navController, startDestination = "home") {
 }
 ```
 
-**New (Navigation 2.8+):**
+**新（Navigation 2.8+）：**
 ```kotlin
 @Serializable data class Home
 @Serializable data class Details(val id: String)
@@ -30,13 +30,13 @@ NavHost(navController, startDestination = Home) {
 }
 ```
 
-**Migration notes:** Type-safe routes eliminate string typos and runtime crashes. Requires `kotlinx-serialization` plugin and `navigation-compose:2.8.0+`. Encode complex objects using custom serializers.
+**迁移说明：** 类型安全路由消除字符串拼写错误和运行时崩溃。需要 `kotlinx-serialization` 插件和 `navigation-compose:2.8.0+`。使用自定义序列化器编码复杂对象。
 
 ---
 
 ## `accompanist-systemuicontroller` → `enableEdgeToEdge()`
 
-**Old:**
+**旧：**
 ```kotlin
 val systemUiController = rememberSystemUiController()
 systemUiController.setSystemBarsColor(
@@ -45,19 +45,19 @@ systemUiController.setSystemBarsColor(
 )
 ```
 
-**New (Compose 1.7+):**
+**新（Compose 1.7+）：**
 ```kotlin
 enableEdgeToEdge()
-// In Activity.onCreate() before setContent {}
+// 在 Activity.onCreate() 中 setContent {} 之前调用
 ```
 
-**Migration notes:** Built-in since Compose 1.7. Automatically handles status bar, navigation bar, and IME behind content. Remove `accompanist-systemuicontroller` dependency entirely.
+**迁移说明：** Compose 1.7 起内置。自动处理状态栏、导航栏和 IME 背后内容。完全移除 `accompanist-systemuicontroller` 依赖。
 
 ---
 
 ## `accompanist-pager` → `HorizontalPager`/`VerticalPager`
 
-**Old:**
+**旧：**
 ```kotlin
 val pagerState = rememberPagerState()
 HorizontalPager(count = items.size, state = pagerState) { page ->
@@ -65,7 +65,7 @@ HorizontalPager(count = items.size, state = pagerState) { page ->
 }
 ```
 
-**New (Foundation):**
+**新（Foundation）：**
 ```kotlin
 val pagerState = rememberPagerState(pageCount = { items.size })
 HorizontalPager(state = pagerState) { page ->
@@ -73,53 +73,53 @@ HorizontalPager(state = pagerState) { page ->
 }
 ```
 
-**Migration notes:** Native Pager in `foundation:1.6+` replaces accompanist. Removes external dependency. State initialization slightly different; pass lambda for dynamic page counts.
+**迁移说明：** `foundation:1.6+` 中的原生 Pager 替代 accompanist。移除外部依赖。状态初始化略有不同；通过 lambda 传递动态页面数。
 
 ---
 
 ## `accompanist-swiperefresh` → `PullToRefreshBox`
 
-**Old:**
+**旧：**
 ```kotlin
 SwipeRefresh(state = rememberSwipeRefreshState(isRefreshing), onRefresh = { load() }) {
     LazyColumn { items(data) { item -> ItemRow(item) } }
 }
 ```
 
-**New (Material3):**
+**新（Material3）：**
 ```kotlin
 PullToRefreshBox(isRefreshing = isRefreshing, onRefresh = { load() }) {
     LazyColumn { items(data) { item -> ItemRow(item) } }
 }
 ```
 
-**Migration notes:** `PullToRefreshBox` in `material3:1.2+` is the official replacement. Cleaner API. Remove `accompanist-swiperefresh` dependency.
+**迁移说明：** `material3:1.2+` 中的 `PullToRefreshBox` 是官方替代。更简洁的 API。移除 `accompanist-swiperefresh` 依赖。
 
 ---
 
 ## `accompanist-flowlayout` → `FlowRow`/`FlowColumn`
 
-**Old:**
+**旧：**
 ```kotlin
 FlowRow(mainAxisSize = SizeMode.Expand) {
     items.forEach { item -> Chip(text = item) }
 }
 ```
 
-**New (Foundation):**
+**新（Foundation）：**
 ```kotlin
 FlowRow(modifier = Modifier.fillMaxWidth()) {
     items.forEach { item -> Chip(text = item) }
 }
 ```
 
-**Migration notes:** FlowRow/FlowColumn in `foundation:1.6+`. API simplified; use standard modifiers instead of `SizeMode`. Better performance and less memory overhead.
+**迁移说明：** `foundation:1.6+` 中的 FlowRow/FlowColumn。API 简化；使用标准 modifier 替代 `SizeMode`。性能更好，内存开销更小。
 
 ---
 
 ## `LazyColumn { animateItemPlacement() }` → `LazyColumn { animateItem() }`
 
-**Old:**
+**旧：**
 ```kotlin
 LazyColumn {
     items(items, key = { it.id }) { item ->
@@ -128,7 +128,7 @@ LazyColumn {
 }
 ```
 
-**New:**
+**新：**
 ```kotlin
 LazyColumn {
     items(items, key = { it.id }) { item ->
@@ -137,13 +137,13 @@ LazyColumn {
 }
 ```
 
-**Migration notes:** `animateItem()` is the modern API (Compose 1.7+). Returns animation state for finer control. `animateItemPlacement()` still works but is superseded.
+**迁移说明：** `animateItem()` 是现代 API（Compose 1.7+）。返回动画状态以进行更精细的控制。`animateItemPlacement()` 仍能工作但已被取代。
 
 ---
 
-## `Modifier.composed` Pattern → `Modifier.Node` API
+## `Modifier.composed` 模式 → `Modifier.Node` API
 
-**Old:**
+**旧：**
 ```kotlin
 fun Modifier.myModifier(value: Int) = composed {
     val state = remember { mutableStateOf(value) }
@@ -151,14 +151,14 @@ fun Modifier.myModifier(value: Int) = composed {
 }
 ```
 
-**New:**
+**新：**
 ```kotlin
 fun Modifier.myModifier(value: Int) = this.then(
     Modifier
         .fillMaxWidth()
         .padding(8.dp)
 )
-// Or for complex state:
+// 或对于复杂状态：
 class MyModifierNode(val value: Int) : ModifierNodeElement<MyNodeImpl>() {
     override fun create() = MyNodeImpl(value)
     override fun update(node: MyNodeImpl) { node.value = value }
@@ -166,47 +166,47 @@ class MyModifierNode(val value: Int) : ModifierNodeElement<MyNodeImpl>() {
 private class MyNodeImpl(var value: Int) : Modifier.Node
 ```
 
-**Migration notes:** `composed {}` incurs overhead; avoid if no `remember` calls needed. For stateful modifiers, prefer `ModifierNode` API (Compose 1.8+). Benchmark before migrating existing code.
+**迁移说明：** `composed {}` 有开销；如果不需要 `remember` 调用则避免使用。对于有状态的 modifier，优先使用 `ModifierNode` API（Compose 1.8+）。迁移现有代码前先做基准测试。
 
 ---
 
-## Primitive State Optimization: `mutableStateOf(0)` → `mutableIntStateOf(0)`
+## 原始类型状态优化：`mutableStateOf(0)` → `mutableIntStateOf(0)`
 
-**Old:**
+**旧：**
 ```kotlin
 var count by remember { mutableStateOf(0) }
 var temperature by remember { mutableStateOf(37.5f) }
 ```
 
-**New:**
+**新：**
 ```kotlin
 var count by remember { mutableIntStateOf(0) }
 var temperature by remember { mutableFloatStateOf(37.5f) }
 ```
 
-**Migration notes:** Primitive-specific functions (`mutableIntStateOf`, `mutableFloatStateOf`, `mutableLongStateOf`) avoid boxing. Negligible performance impact in UI code but best practice since Compose 1.4+.
+**迁移说明：** 原始类型专用函数（`mutableIntStateOf`、`mutableFloatStateOf`、`mutableLongStateOf`）避免装箱。在 UI 代码中性能影响可忽略，但自 Compose 1.4+ 起是最佳实践。
 
 ---
 
 ## `collectAsState()` → `collectAsStateWithLifecycle()`
 
-**Old:**
+**旧：**
 ```kotlin
 val state by viewModel.uiState.collectAsState()
 ```
 
-**New:**
+**新：**
 ```kotlin
 val state by viewModel.uiState.collectAsStateWithLifecycle()
 ```
 
-**Migration notes:** `collectAsStateWithLifecycle()` (Compose 1.6+) respects lifecycle—automatically stops collecting when activity is paused. Prevents memory leaks and redundant work. Requires `androidx.lifecycle:lifecycle-runtime-compose`.
+**迁移说明：** `collectAsStateWithLifecycle()`（Compose 1.6+）尊重生命周期 — activity 暂停时自动停止收集。防止内存泄漏和冗余工作。需要 `androidx.lifecycle:lifecycle-runtime-compose`。
 
 ---
 
-## `@ExperimentalMaterial3Api` Graduation
+## `@ExperimentalMaterial3Api` 毕业
 
-**Old:**
+**旧：**
 ```kotlin
 @OptIn(ExperimentalMaterial3Api::class)
 fun MyScreen() {
@@ -214,27 +214,27 @@ fun MyScreen() {
 }
 ```
 
-**New (Compose 1.8+, Material3 1.3+):**
+**新（Compose 1.8+, Material3 1.3+）：**
 ```kotlin
 fun MyScreen() {
     DatePicker(state = rememberDatePickerState())
 }
 ```
 
-**Migration notes:** DatePicker, TimePicker, ExposedDropdownMenuBox, and SearchBar graduated to stable in Material3 1.3+. Remove `@OptIn` annotations. APIs are stable—safe for production use.
+**迁移说明：** DatePicker、TimePicker、ExposedDropdownMenuBox 和 SearchBar 在 Material3 1.3+ 中已稳定。移除 `@OptIn` 注解。API 已稳定 — 可安全用于生产。
 
 ---
 
-## `Scaffold` Padding Enforcement
+## `Scaffold` 内边距强制使用
 
-**Old (problematic):**
+**旧（有问题）：**
 ```kotlin
 Scaffold(topBar = { TopAppBar() }) {
     LazyColumn { items(data) { item -> ItemRow(item) } }
 }
 ```
 
-**New (required since 1.6+):**
+**新（Compose 1.6+ 起强制）：**
 ```kotlin
 Scaffold(topBar = { TopAppBar() }) { innerPadding ->
     LazyColumn(modifier = Modifier.padding(innerPadding)) {
@@ -243,50 +243,50 @@ Scaffold(topBar = { TopAppBar() }) { innerPadding ->
 }
 ```
 
-**Migration notes:** Must use `innerPadding` parameter since Compose 1.6. Ignoring it causes content overlap under system bars. The compiler enforces this now—old pattern won't compile.
+**迁移说明：** 自 Compose 1.6 起必须使用 `innerPadding` 参数。忽略它会导致内容被系统栏重叠。编译器现在强制这一点 — 旧模式无法编译。
 
 ---
 
-## Material 2 → Material 3 Migration
+## Material 2 → Material 3 迁移
 
-**Old (Material):**
+**旧（Material）：**
 ```kotlin
 Button(onClick = { }) { Text("Click") }
 TextField(value = text, onValueChange = { text = it })
 Surface(color = MaterialTheme.colors.primary) { /* */ }
 ```
 
-**New (Material3):**
+**新（Material3）：**
 ```kotlin
-Button(onClick = { }) { Text("Click") }  // Same signature
-TextField(value = text, onValueChange = { text = it })  // Same signature
+Button(onClick = { }) { Text("Click") }  // 相同签名
+TextField(value = text, onValueChange = { text = it })  // 相同签名
 Surface(color = MaterialTheme.colorScheme.primary) { /* */ }
 ```
 
-**Migration notes:** Most Composables are API-compatible. Main changes: `colors` → `colorScheme`, new shape system, updated ripple defaults. Use Compose BOM to align Material3 versions.
+**迁移说明：** 大多数 Composable API 兼容。主要变化：`colors` → `colorScheme`、新形状系统、更新的涟漪默认行为。使用 Compose BOM 对齐 Material3 版本。
 
 ---
 
-## `WindowInsets` & Edge-to-Edge
+## `WindowInsets` 与 Edge-to-Edge
 
-**Old:**
+**旧：**
 ```kotlin
 Surface(modifier = Modifier.systemBarsPadding()) { /* */ }
 ```
 
-**New (API 35+ default edge-to-edge):**
+**新（API 35+ 默认 edge-to-edge）：**
 ```kotlin
 Surface(modifier = Modifier.padding(WindowInsets.systemBars.asPaddingValues())) { /* */ }
-// Or use enableEdgeToEdge() in Activity—handles automatically
+// 或在 Activity 中使用 enableEdgeToEdge() — 自动处理
 ```
 
-**Migration notes:** Edge-to-edge is default on Android 15+. System bar colors are managed by `enableEdgeToEdge()`. Use `WindowInsets.safeDrawing` for notch-aware layouts. Deprecate manual `systemBarsPadding()` calls.
+**迁移说明：** Edge-to-edge 在 Android 15+ 上是默认的。系统栏颜色由 `enableEdgeToEdge()` 管理。使用 `WindowInsets.safeDrawing` 进行刘海屏感知布局。弃用手动 `systemBarsPadding()` 调用。
 
 ---
 
-## `ObservableState` Pattern Changes
+## `ObservableState` 模式变更
 
-**Old:**
+**旧：**
 ```kotlin
 @Composable
 fun observe(state: ObservableState): State<T> = produceState(state.value) {
@@ -294,7 +294,7 @@ fun observe(state: ObservableState): State<T> = produceState(state.value) {
 }
 ```
 
-**New:**
+**新：**
 ```kotlin
 @Composable
 fun <T> ObservableState<T>.asState(): State<T> = produceState(this.value) {
@@ -302,4 +302,4 @@ fun <T> ObservableState<T>.asState(): State<T> = produceState(this.value) {
 }
 ```
 
-**Migration notes:** `snapshotFlow {}` is preferred over direct listeners (Compose 1.6+). Integrates better with Compose's snapshot system. Use `distinctUntilChanged()` to avoid redundant recompositions.
+**迁移说明：** `snapshotFlow {}` 优先于直接监听器（Compose 1.6+）。与 Compose 的快照系统集成更好。使用 `distinctUntilChanged()` 避免冗余重组。

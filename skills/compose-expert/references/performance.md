@@ -1,30 +1,30 @@
-# Performance Optimization Reference
+# 性能优化参考
 
-## Three Phases: Composition, Layout, Drawing
+## 三个阶段：组合、布局、绘制
 
-Every frame consists of three phases. Understanding state reads in each phase prevents unnecessary recompositions.
+每帧由三个阶段组成。理解每个阶段中的状态读取可防止不必要的重组。
 
-### Composition Phase
-- Executes composable functions, evaluates state reads
-- Generates lambda and instance allocations
-- **State reads here trigger recomposition** of the entire scope
+### 组合阶段
+- 执行 composable 函数，评估状态读取
+- 生成 lambda 和实例分配
+- **此处的状态读取会触发整个作用域的重组**
 
-### Layout Phase
-- Calculates size and position, runs `measure` and `layout` blocks
-- Can read state without triggering composition recomposition
-- Mutable state reads OK; prefer `Modifier.offset { }` over `Modifier.offset()`
+### 布局阶段
+- 计算尺寸和位置，运行 `measure` 和 `layout` 块
+- 可以读取状态而不触发组合重组
+- 可变状态读取可行；优先使用 `Modifier.offset { }` 而非 `Modifier.offset()`
 
-### Drawing Phase
-- Emits draw operations, runs `Canvas` and custom `DrawScope`
-- Cannot read mutable state without stability warnings
+### 绘制阶段
+- 发出绘制操作，运行 `Canvas` 和自定义 `DrawScope`
+- 读取可变状态会产生稳定性警告
 
-**Source**: `androidx/compose/runtime/Composer.kt`
+**来源**：`androidx/compose/runtime/Composer.kt`
 
 ---
 
-## Recomposition Skipping with Compiler Reports
+## 使用编译器报告跳过重组
 
-The Compose compiler generates `$changed` bitmasks to detect state changes. Enable compiler reports to inspect stability and skippability:
+Compose 编译器生成 `$changed` 位掩码来检测状态变化。启用编译器报告以检查稳定性和可跳过性：
 
 ```kotlin
 // build.gradle.kts
@@ -34,30 +34,30 @@ composeCompiler {
 }
 ```
 
-After building (`./gradlew assembleRelease`), check the generated files in `build/compose_reports/`:
+构建后（`./gradlew assembleRelease`），检查 `build/compose_reports/` 中生成的文件：
 
-- **`*_composables.txt`** — shows each composable's restartability and skippability:
+- **`*_composables.txt`** — 显示每个 composable 的可重启性和可跳过性：
   ```
   restartable skippable fun MyComponent(name: String, onClick: Function0<Unit>)
-  restartable fun UnstableComponent(items: List<Item>)  // NOT skippable — unstable param
+  restartable fun UnstableComponent(items: List<Item>)  // 不可跳过 — 不稳定参数
   ```
 
-- **`*_classes.txt`** — shows stability inference for each class:
+- **`*_classes.txt`** — 显示每个类的稳定性推断：
   ```
   stable class User { stable val name: String }
   unstable class ScreenState { unstable val items: List<Item> }
   ```
 
-A composable missing `skippable` means the compiler cannot skip it during recomposition, even when inputs haven't changed. Fix by stabilizing its parameters (see Stability section below).
+缺少 `skippable` 的 composable 意味着编译器无法在重组期间跳过它，即使输入未变。通过稳定其参数来修复（见下方稳定性部分）。
 
-### Stability — @Stable and @Immutable
+### 稳定性 — @Stable 和 @Immutable
 
-A type is **stable** if:
-- Its public properties are stable
-- Overrides to `equals()` and `hashCode()` are based on stable properties
-- Recomposition is skipped when the same instance is passed
+如果类型满足以下条件，则它是**稳定的**：
+- 其 public 属性是稳定的
+- 重写的 `equals()` 和 `hashCode()` 基于稳定属性
+- 传递相同实例时跳过重组
 
-Mark stable types explicitly:
+显式标记稳定类型：
 
 ```kotlin
 @Immutable
@@ -69,36 +69,36 @@ class UserViewModel : ViewModel {
     val state: State<UserState> = _state
 }
 
-// Composable receiving stable types can skip recomposition
+// 接收稳定类型的 composable 可以跳过重组
 @Composable
 fun PersonCard(person: Person) {
-    Text(person.name)  // Skips if person unchanged
+    Text(person.name)  // 如果 person 未变则跳过
 }
 ```
 
-**Avoid**: `@Stable` on data classes with mutable fields or non-final properties.
+**避免**：在具有可变字段或非 final 属性的数据类上使用 `@Stable`。
 
 ---
 
-## Strong Skipping Mode (Default)
+## 强跳过模式（默认）
 
-Android Gradle Plugin 8.0+ and Compose compiler 1.5.0+ enable **strong skipping mode**. This changes how lambdas are treated:
+Android Gradle Plugin 8.0+ 和 Compose 编译器 1.5.0+ 启用**强跳过模式**。这改变了 lambda 的处理方式：
 
-Without strong skipping, every lambda is unstable. With it enabled:
-- Lambdas become stable if all captured variables are stable
-- Fewer unnecessary recompositions
+未启用强跳过时，每个 lambda 都是不稳定的。启用后：
+- 如果所有捕获变量都是稳定的，lambda 变为稳定
+- 减少不必要的重组
 
 ```kotlin
-// With strong skipping: lambda is stable if count is stable
+// 启用强跳过时：如果 count 是稳定的，lambda 是稳定的
 @Composable
 fun Counter(count: Int) {
-    Button(onClick = { println(count) }) {  // Stable lambda
+    Button(onClick = { println(count) }) {  // 稳定 lambda
         Text("Count: $count")
     }
 }
 ```
 
-Check `build.gradle.kts`:
+检查 `build.gradle.kts`：
 ```kotlin
 android {
     composeOptions {
@@ -109,50 +109,50 @@ android {
 
 ---
 
-## Defer State Reads to Layout/Draw Phase
+## 将状态读取推迟到布局/绘制阶段
 
-Reading state in composition triggers recomposition. Push reads to later phases:
+在组合中读取状态会触发重组。将读取推后到更晚的阶段：
 
-### Bad: Recomposition on Every Offset Change
+### 糟糕：每次偏移变化都重组
 ```kotlin
 @Composable
 fun Box(offsetX: State<Float>) {
-    val x = offsetX.value  // Reads in composition, triggers recomposition
+    val x = offsetX.value  // 在组合中读取，触发重组
     Box(modifier = Modifier.offset(x.dp, 0.dp))
 }
 ```
 
-### Good: Deferred Read in Layout Phase
+### 良好：在布局阶段推迟读取
 ```kotlin
 @Composable
 fun Box(offsetX: State<Float>) {
     Box(
         modifier = Modifier.offset {
-            IntOffset(offsetX.value.toInt(), 0)  // Read in layout phase
+            IntOffset(offsetX.value.toInt(), 0)  // 在布局阶段读取
         }
     )
 }
 ```
 
-Use `Modifier.offset { }` (lambda) instead of `Modifier.offset()` (parameter) for state-dependent positioning.
+对状态依赖的定位使用 `Modifier.offset { }`（lambda）而非 `Modifier.offset()`（参数）。
 
 ---
 
-## derivedStateOf — Reducing Recomposition Frequency
+## derivedStateOf — 减少重组频率
 
-When deriving expensive computations from state, wrap in `derivedStateOf` to dedup recompositions:
+从状态派生昂贵计算时，用 `derivedStateOf` 包装以去重重组：
 
 ```kotlin
-// Bad: recomposes on every items change
+// 糟糕：每次 items 变化都重组
 @Composable
 fun SearchResults(items: List<Item>, query: String) {
-    val filtered = items.filter { query in it.title }  // Composition phase
+    val filtered = items.filter { query in it.title }  // 组合阶段
     LazyColumn {
         items(filtered) { /* ... */ }
     }
 }
 
-// Good: only recomposes if filtered result actually changes
+// 良好：仅在实际过滤结果变化时才重组
 @Composable
 fun SearchResults(items: List<Item>, query: String) {
     val filtered = remember(items, query) {
@@ -164,30 +164,30 @@ fun SearchResults(items: List<Item>, query: String) {
 }
 ```
 
-`derivedStateOf` deduplicates downstream recompositions — two different filters yielding the same list trigger only one downstream recomposition.
+`derivedStateOf` 去重下游重组 — 两次不同的过滤产生相同列表时，只触发一次下游重组。
 
 ---
 
-## remember with Keys
+## 带 Key 的 remember
 
-Avoid unnecessary recalculation:
+避免不必要的重新计算：
 
 ```kotlin
-// Recalculates on every recomposition
+// 每次重组都重新计算
 @Composable
 fun ExpensiveItem(id: Int) {
-    val metadata = computeMetadata(id)  // Called every time
+    val metadata = computeMetadata(id)  // 每次调用
     Text(metadata)
 }
 
-// Recalculates only when id changes
+// 仅在 id 变化时重新计算
 @Composable
 fun ExpensiveItem(id: Int) {
     val metadata = remember(id) { computeMetadata(id) }
     Text(metadata)
 }
 
-// Multiple keys
+// 多个 key
 @Composable
 fun Item(id: Int, userId: Int) {
     val data = remember(id, userId) { fetchData(id, userId) }
@@ -195,25 +195,25 @@ fun Item(id: Int, userId: Int) {
 }
 ```
 
-Omit `remember` if computation is cheap (string formatting, simple objects). Over-wrapping causes memory leaks.
+如果计算廉价（字符串格式化、简单对象），省略 `remember`。过度包裹会导致内存泄漏。
 
 ---
 
-## LazyList Performance — Keys and ContentType
+## LazyList 性能 — Key 和 ContentType
 
-### Always Provide Keys
+### 始终提供 Key
 
-Keys enable item reuse and animations:
+Key 启用条目复用和动画：
 
 ```kotlin
-// Bad: no keys, items recreated on every list change
+// 糟糕：无 key，列表变化时条目重新创建
 LazyColumn {
     items(users) { user ->
         UserRow(user)
     }
 }
 
-// Good: keys enable reuse
+// 良好：key 启用复用
 LazyColumn {
     items(users, key = { it.id }) { user ->
         UserRow(user)
@@ -221,7 +221,7 @@ LazyColumn {
 }
 ```
 
-### ContentType for Efficient Reuse
+### ContentType 用于高效复用
 
 ```kotlin
 sealed class ListItem {
@@ -248,12 +248,12 @@ LazyColumn {
 }
 ```
 
-Without `contentType`, all items compete for one ViewHolder pool. With it, items reuse efficiently.
+没有 `contentType`，所有条目竞争一个 ViewHolder 池。有了它，条目高效复用。
 
-### Avoid Allocations in Item Scope
+### 避免在条目作用域中分配
 
 ```kotlin
-// Bad: allocates on every recomposition
+// 糟糕：每次重组都分配
 LazyColumn {
     items(users) { user ->
         val userState = remember { mutableStateOf(user) }
@@ -261,7 +261,7 @@ LazyColumn {
     }
 }
 
-// Good: allocates once
+// 良好：只分配一次
 LazyColumn {
     items(
         items = users,
@@ -276,11 +276,11 @@ LazyColumn {
 
 ## Baseline Profiles
 
-Baseline profiles instruct R8 to pre-compile hot code paths, reducing startup time and jank.
+Baseline profiles 指导 R8 预编译热代码路径，减少启动时间和卡顿。
 
-### Generating Profiles
+### 生成 Profiles
 
-Use Jetpack Macrobenchmark to record profiles:
+使用 Jetpack Macrobenchmark 记录 profiles：
 
 ```kotlin
 @RunWith(AndroidBenchmarkRunner::class)
@@ -298,12 +298,12 @@ class StartupBenchmark {
             startActivityAndWait()
         }
     ) {
-        // Interact with app
+        // 与应用交互
     }
 }
 ```
 
-Profiles are generated in `baseline-prof.txt`:
+Profiles 生成在 `baseline-prof.txt` 中：
 ```
 androidx/compose/runtime/Recomposer;startRecomposition()V
 com/example/MyScreen;ComposableFunctionName(ILandroidx/compose/runtime/Composer;I)V
@@ -311,9 +311,9 @@ com/example/MyScreen;ComposableFunctionName(ILandroidx/compose/runtime/Composer;
 
 ---
 
-## R8/ProGuard Compose Rules
+## R8/ProGuard Compose 规则
 
-Compose includes default ProGuard rules. Ensure `shrinkResources true` and `minifyEnabled true`:
+Compose 包含默认 ProGuard 规则。确保 `shrinkResources true` 和 `minifyEnabled true`：
 
 ```gradle
 android {
@@ -327,7 +327,7 @@ android {
 }
 ```
 
-Custom rules to preserve stability:
+保留稳定性的自定义规则：
 
 ```proguard
 -keep @androidx.compose.runtime.Stable class **
@@ -339,19 +339,19 @@ Custom rules to preserve stability:
 
 ---
 
-## Measuring Performance
+## 测量性能
 
-### Layout Inspector — Recomposition Counts
+### Layout Inspector — 重组计数
 
-In Android Studio:
-1. Run app on device
-2. Open **Layout Inspector** (Tools > Layout Inspector)
-3. Select target process
-4. Check **Show Composition Counts** (toggle in inspector)
+在 Android Studio 中：
+1. 在设备上运行应用
+2. 打开 **Layout Inspector**（Tools > Layout Inspector）
+3. 选择目标进程
+4. 勾选 **Show Composition Counts**（inspector 中的切换）
 
-Recomposition counts display how many times each composable was recomposed since inspection started.
+重组计数显示自检查开始以来每个 composable 被重组的次数。
 
-### Macrobenchmark — Frame Timing
+### Macrobenchmark — 帧时间
 
 ```kotlin
 benchmarkRule.measureRepeated(
@@ -359,34 +359,34 @@ benchmarkRule.measureRepeated(
     metrics = listOf(FrameTimingMetric()),
     iterations = 10
 ) {
-    // Interact: scroll, click, etc.
+    // 交互：滚动、点击等
 }
 ```
 
-Reports frame times (ms), jank, jitter. Target <16.67ms for 60 fps.
+报告帧时间（ms）、卡顿、抖动。60 fps 目标 <16.67ms。
 
 ---
 
-## Common Hot Paths
+## 常见热路径
 
-### String Formatting in Composition
+### 组合中的字符串格式化
 ```kotlin
-// Bad: allocates string every recomposition
+// 糟糕：每次重组都分配字符串
 @Composable
 fun Counter(count: Int) {
-    Text("Count: ${count}")  // String.format called
+    Text("Count: ${count}")  // 调用 String.format
 }
 
-// Still composed, but optimized
+// 仍组合，但已优化
 @Composable
 fun Counter(count: Int) {
     Text(buildString { append("Count: "); append(count) })
 }
 ```
 
-### List Filtering Without derivedStateOf
+### 无 derivedStateOf 的列表过滤
 ```kotlin
-// Bad: filters every recomposition
+// 糟糕：每次重组都过滤
 @Composable
 fun FilteredList(items: List<Item>, predicate: (Item) -> Boolean) {
     LazyColumn {
@@ -394,7 +394,7 @@ fun FilteredList(items: List<Item>, predicate: (Item) -> Boolean) {
     }
 }
 
-// Good
+// 良好
 @Composable
 fun FilteredList(items: List<Item>, predicate: (Item) -> Boolean) {
     val filtered = remember(items, predicate) {
@@ -406,16 +406,16 @@ fun FilteredList(items: List<Item>, predicate: (Item) -> Boolean) {
 }
 ```
 
-### Creating Objects in Lambdas
+### 在 Lambda 中创建对象
 ```kotlin
-// Bad
+// 糟糕
 Button(
     colors = ButtonDefaults.buttonColors(
         containerColor = if (isPressed) Color.Red else Color.Blue
     )
 ) { }
 
-// Good: compute once
+// 良好：只计算一次
 val buttonColors = remember(isPressed) {
     ButtonDefaults.buttonColors(
         containerColor = if (isPressed) Color.Red else Color.Blue
@@ -426,35 +426,35 @@ Button(colors = buttonColors) { }
 
 ---
 
-## Anti-Patterns
+## 反模式
 
-### Wrapping Everything in remember
+### 把所有东西包裹在 remember 中
 ```kotlin
-// Unnecessary
+// 不必要
 val text = remember { "Hello" }
 val size = remember { 12.sp }
 val color = remember { Color.Black }
 ```
 
-`remember` only for mutable state or expensive calculations.
+`remember` 仅用于可变状态或昂贵计算。
 
-### Premature Optimization
-Profile first. Don't add `derivedStateOf` or `remember` without Layout Inspector data.
+### 过早优化
+先分析。没有 Layout Inspector 数据就不要添加 `derivedStateOf` 或 `remember`。
 
-### @Stable on Mutable Data Classes
+### 在可变数据类上使用 @Stable
 ```kotlin
-// DON'T
+// 不要
 @Stable
 data class MutableUser(val name: String, val age: MutableState<Int>)
 
-// DO
+// 要
 @Immutable
 data class User(val name: String, val age: Int)
 ```
 
 ---
 
-## Resources
+## 资源
 
 - **Compose Compiler Reports**: https://developer.android.com/develop/ui/compose/performance/stability-report
 - **Macrobenchmark**: https://developer.android.com/develop/ui/compose/performance/measurement
@@ -462,18 +462,18 @@ data class User(val name: String, val age: Int)
 
 ---
 
-## Zero-Size DrawScope Guard
+## 零尺寸 DrawScope 防护
 
-During initial composition, a composable's size can be zero. This causes crashes in calculations like `size.minDimension / 2`.
+在初始组合期间，composable 的尺寸可能为零。这会导致 `size.minDimension / 2` 等计算崩溃。
 
 ```kotlin
-// BAD: crashes when size is zero
+// BAD: 尺寸为零时崩溃
 Canvas(modifier = Modifier.fillMaxSize()) {
-    val radius = size.minDimension / 2  // NaN or divide-by-zero
+    val radius = size.minDimension / 2  // NaN 或除零
     drawCircle(color = Color.Blue, radius = radius)
 }
 
-// GOOD: always guard
+// GOOD: 始终防护
 Canvas(modifier = Modifier.fillMaxSize()) {
     if (size.minDimension <= 0f) return@Canvas
     val radius = size.minDimension / 2
@@ -481,35 +481,35 @@ Canvas(modifier = Modifier.fillMaxSize()) {
 }
 ```
 
-Rule: Never use `fillMaxSize()` on Canvas without an explicit height constraint. Always guard DrawScope operations.
+规则：永远不要在没有显式高度约束的情况下对 Canvas 使用 `fillMaxSize()`。始终防护 DrawScope 操作。
 
 ---
 
 ## Composition Tracing
 
-Use `trace()` for Perfetto/systrace integration:
+使用 `trace()` 进行 Perfetto/systrace 集成：
 
 ```kotlin
 @Composable
 fun ExpensiveScreen() {
     trace("ExpensiveScreen") {
-        // composable body — visible in system traces
+        // composable 主体 — 在系统追踪中可见
     }
 }
 ```
 
-Enables identifying slow composables in production profiling without adding logging.
+无需添加日志即可在生产环境分析中识别慢 composable。
 
 ---
 
 ## movableContentOf
 
-Avoid recomposition when moving content between layout positions:
+在布局位置之间移动内容时避免重组：
 
 ```kotlin
 val movableContent = remember {
     movableContentOf {
-        ExpensiveChild() // Only composed once, moved without recomposition
+        ExpensiveChild() // 只组合一次，移动而不重组
     }
 }
 
@@ -520,13 +520,13 @@ if (isExpanded) {
 }
 ```
 
-Without `movableContentOf`, switching between layouts would dispose and recompose `ExpensiveChild`. With it, the content is moved, preserving state and avoiding recomposition.
+没有 `movableContentOf`，切换布局会销毁并重新组合 `ExpensiveChild`。有了它，内容被移动，保留状态并避免重组。
 
 ---
 
-## Compiler Reports (Expanded)
+## 编译器报告（扩展）
 
-Enable compiler reports to see which composables are skippable and which types are stable:
+启用编译器报告以查看哪些 composable 可跳过、哪些类型稳定：
 
 ```kotlin
 // build.gradle.kts
@@ -536,56 +536,56 @@ composeCompiler {
 }
 ```
 
-After building, check the output files:
+构建后，检查输出文件：
 
-- `*_composables.txt` — shows each composable's status:
+- `*_composables.txt` — 显示每个 composable 的状态：
   ```
   restartable skippable fun MyComponent(name: String, onClick: Function0<Unit>)
-  restartable fun UnstableComponent(items: List<Item>)  // NOT skippable!
+  restartable fun UnstableComponent(items: List<Item>)  // 不可跳过！
   ```
 
-- `*_classes.txt` — shows type stability:
+- `*_classes.txt` — 显示类型稳定性：
   ```
   stable class User { stable val name: String }
   unstable class ScreenState { unstable val items: List<Item> }
   ```
 
-Fix unstable types by:
-1. Using `@Stable` annotation on the class
-2. Using `kotlinx.collections.immutable.ImmutableList` instead of `List`
-3. Adding the class to `compose-stability-config.txt` for multi-module projects
+通过以下方式修复不稳定类型：
+1. 在类上使用 `@Stable` 注解
+2. 使用 `kotlinx.collections.immutable.ImmutableList` 替代 `List`
+3. 在多模块项目中将其添加到 `compose-stability-config.txt`
 
 ---
 
-## Production Performance Rules
+## 生产环境性能规则
 
-1. **R8: strip previews + semantics in release** — add to `proguard-rules.pro`:
+1. **R8：在 release 中剥离 preview + semantics** — 添加到 `proguard-rules.pro`：
 ```
 -assumenosideeffects class androidx.compose.ui.tooling.preview.** { *; }
 ```
 
-2. **`@Suppress("ComposeUnstableCollections")`** — pragmatic skipping when stability isn't worth the complexity:
+2. **`@Suppress("ComposeUnstableCollections")`** — 当稳定性不值得复杂性时务实跳过：
 ```kotlin
 @Suppress("ComposeUnstableCollections")
 @Composable
-fun ItemList(items: List<Item>) { // List is unstable but acceptable here
+fun ItemList(items: List<Item>) { // List 不稳定但此处可接受
     // ...
 }
 ```
 
-3. **ImmutableList for stability** — Guava `ImmutableList` or `kotlinx.collections.immutable`:
+3. **ImmutableList 用于稳定性** — Guava `ImmutableList` 或 `kotlinx.collections.immutable`：
 ```kotlin
-// Makes the parameter stable, enabling recomposition skipping
+// 使参数稳定，启用重组跳过
 @Composable
 fun StableList(items: ImmutableList<Item>) { ... }
 ```
 
-4. **ReportDrawnWhen** for startup performance:
+4. **ReportDrawnWhen 用于启动性能**：
 ```kotlin
 ReportDrawnWhen { items.isNotEmpty() }
 ```
 
-5. **Canvas always explicitly sized** — never `fillMaxSize()` without a height constraint:
+5. **Canvas 始终显式定尺寸** — 永远不要无高度约束的 `fillMaxSize()`：
 ```kotlin
 // BAD
 Canvas(Modifier.fillMaxSize()) { ... }
@@ -593,4 +593,3 @@ Canvas(Modifier.fillMaxSize()) { ... }
 // GOOD
 Canvas(Modifier.fillMaxWidth().height(200.dp)) { ... }
 ```
-

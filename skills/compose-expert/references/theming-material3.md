@@ -1,8 +1,8 @@
-# Material 3 Theming Reference
+# Material 3 主题参考
 
-## MaterialTheme Basics
+## MaterialTheme 基础
 
-`MaterialTheme` is the root provider for design tokens in Compose Material 3. It establishes `colorScheme`, `typography`, and `shapes` across your app.
+`MaterialTheme` 是 Compose Material 3 中设计 token 的根提供者。它在整个应用中建立 `colorScheme`、`typography` 和 `shapes`。
 
 ```kotlin
 @Composable
@@ -12,7 +12,7 @@ fun MyApp() {
         typography = Typography(),
         shapes = Shapes()
     ) {
-        // All descendants access tokens via MaterialTheme
+        // 所有后代通过 MaterialTheme 访问 token
         Scaffold {
             Text("Uses MaterialTheme.typography.bodyLarge")
         }
@@ -20,24 +20,24 @@ fun MyApp() {
 }
 ```
 
-**Source**: `androidx/compose/material3/MaterialTheme.kt`
+**来源**：`androidx/compose/material3/MaterialTheme.kt`
 
 ---
 
-## ColorScheme — Light and Dark
+## ColorScheme — 亮色与暗色
 
-A `ColorScheme` bundles 29+ semantic color tokens (primary, secondary, error, surface, etc.).
+`ColorScheme` 捆绑 29+ 语义化颜色 token（primary、secondary、error、surface 等）。
 
-### Default Light/Dark Schemes
+### 默认亮色/暗色方案
 
 ```kotlin
-// Light (default)
+// 亮色（默认）
 val lightColors = lightColorScheme(
     primary = Color(0xFF6200EE),
     secondary = Color(0xFF03DAC6)
 )
 
-// Dark
+// 暗色
 val darkColors = darkColorScheme(
     primary = Color(0xFFBB86FC),
     secondary = Color(0xFF03DAC6)
@@ -46,9 +46,9 @@ val darkColors = darkColorScheme(
 MaterialTheme(colorScheme = if (isDark) darkColors else lightColors) { ... }
 ```
 
-### Dynamic Color (Material You)
+### 动态取色（Material You）
 
-Android 12+ supports extracting colors from wallpaper. Check `Build.VERSION.SDK_INT` before calling:
+Android 12+ 支持从壁纸提取颜色。调用前检查 `Build.VERSION.SDK_INT`：
 
 ```kotlin
 val colorScheme = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
@@ -65,15 +65,15 @@ val colorScheme = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
 MaterialTheme(colorScheme = colorScheme) { ... }
 ```
 
-This requires `android:READ_MEDIA_IMAGES` or context access. `dynamicColorScheme` APIs are in `androidx.compose.material3`.
+这需要 `android:READ_MEDIA_IMAGES` 或 context 访问权限。`dynamicColorScheme` API 位于 `androidx.compose.material3`。
 
 ---
 
-## Typography — Custom Type Scales
+## Typography — 自定义字体尺度
 
-`Typography` defines `displayLarge`, `headlineSmall`, `bodyLarge`, `labelSmall`, etc.
+`Typography` 定义 `displayLarge`、`headlineSmall`、`bodyLarge`、`labelSmall` 等。
 
-### Using Google Fonts
+### 使用 Google Fonts
 
 ```kotlin
 val Poppins = FontFamily(
@@ -99,13 +99,13 @@ val customTypography = Typography(
 MaterialTheme(typography = customTypography) { ... }
 ```
 
-All M3 type styles follow a 15-level scale. Partial overrides keep defaults for unspecified styles.
+所有 M3 字体样式遵循 15 级尺度。部分覆盖保持未指定样式的默认值。
 
 ---
 
-## Shapes — Corner Radius Customization
+## Shapes — 圆角自定义
 
-`Shapes` defines `extraSmall`, `small`, `medium`, `large`, `extraLarge` corner radii.
+`Shapes` 定义 `extraSmall`、`small`、`medium`、`large`、`extraLarge` 圆角半径。
 
 ```kotlin
 val customShapes = Shapes(
@@ -118,35 +118,35 @@ val customShapes = Shapes(
 
 MaterialTheme(shapes = customShapes) { ... }
 
-// Use in components
+// 在组件中使用
 Button(
     modifier = Modifier.clip(MaterialTheme.shapes.large)
 ) { ... }
 ```
 
-Components automatically use theme shapes via `Surface` and `Card`.
+组件通过 `Surface` 和 `Card` 自动使用主题形状。
 
 ---
 
-## Dark Theme
+## 暗色主题
 
 ### isSystemInDarkTheme()
 
-Check system dark mode setting:
+检查系统暗色模式设置：
 
 ```kotlin
 @Composable
 fun MyApp() {
     val isDark = isSystemInDarkTheme()
     MaterialTheme(colorScheme = if (isDark) darkColorScheme() else lightColorScheme()) {
-        // Content
+        // 内容
     }
 }
 ```
 
-### Manual Toggle with Persistence
+### 手动切换并持久化
 
-For user-selectable dark mode:
+用于用户可选的暗色模式：
 
 ```kotlin
 val darkModeState = rememberSaveable { mutableStateOf(isSystemInDarkTheme()) }
@@ -159,54 +159,54 @@ MaterialTheme(colorScheme = if (darkModeState.value) darkColorScheme() else ligh
             }
         }
     ) {
-        // Content
+        // 内容
     }
 }
 ```
 
-Persist selection via DataStore or SharedPreferences.
+通过 DataStore 或 SharedPreferences 持久化选择。
 
 ---
 
-## Component-Level Styling
+## 组件级样式
 
-Use `MaterialTheme` tokens for colors, not hardcoded values:
+使用 `MaterialTheme` token 作为颜色，而非硬编码值：
 
 ```kotlin
-// DO
+// 应做
 Text(
     text = "Hello",
     color = MaterialTheme.colorScheme.onSurface,
     style = MaterialTheme.typography.bodyLarge
 )
 
-// DON'T
+// 不应做
 Text(text = "Hello", color = Color.Black, fontSize = 14.sp)
 ```
 
-Common tokens:
-- `primary`, `secondary`, `tertiary` — accent colors
-- `surface`, `surfaceVariant` — container backgrounds
-- `onPrimary`, `onSurface`, `onError` — text/content on colored backgrounds
-- `error`, `errorContainer` — error states
+常用 token：
+- `primary`、`secondary`、`tertiary` — 强调色
+- `surface`、`surfaceVariant` — 容器背景
+- `onPrimary`、`onSurface`、`onError` — 彩色背景上的文字/内容
+- `error`、`errorContainer` — 错误状态
 
 ---
 
 ## Surface vs Box
 
-**Surface**: styled container with elevation, background from `colorScheme.surface`, respects theme.
+**Surface**：具有阴影、来自 `colorScheme.surface` 的背景、尊重主题的样式化容器。
 
 ```kotlin
 Surface(
     color = MaterialTheme.colorScheme.surface,
     modifier = Modifier.fillMaxWidth()
 ) {
-    // Has elevation, shadow
+    // 有阴影、阴影效果
     Text("Themed container")
 }
 ```
 
-**Box**: plain container, no theming assumptions.
+**Box**：普通容器，无主题假设。
 
 ```kotlin
 Box(
@@ -214,18 +214,18 @@ Box(
         .fillMaxWidth()
         .background(MaterialTheme.colorScheme.surface)
 ) {
-    // Manual styling
+    // 手动样式
     Text("Manual background")
 }
 ```
 
-Use `Surface` for semantic containers (cards, dialogs). Use `Box` for layout grouping.
+对语义容器（卡片、对话框）使用 `Surface`。对布局分组使用 `Box`。
 
 ---
 
-## Scaffold — Layout Integration
+## Scaffold — 布局集成
 
-`Scaffold` composes `topBar`, `floatingActionButton`, `snackbarHost`, and content with proper padding:
+`Scaffold` 组合 `topBar`、`floatingActionButton`、`snackbarHost` 和内容，并带有适当的内边距：
 
 ```kotlin
 Scaffold(
@@ -248,18 +248,18 @@ Scaffold(
     snackbarHost = { SnackbarHost(it) }
 ) { innerPadding ->
     LazyColumn(modifier = Modifier.padding(innerPadding)) {
-        // Content respects safe area
+        // 内容尊重安全区域
     }
 }
 ```
 
-`Scaffold` handles insets and spacing automatically. Don't nest `Scaffold` components.
+`Scaffold` 自动处理 inset 和间距。不要嵌套 `Scaffold` 组件。
 
 ---
 
-## Extending Theme with CompositionLocal
+## 使用 CompositionLocal 扩展主题
 
-Add custom design tokens:
+添加自定义设计 token：
 
 ```kotlin
 data class AppColors(
@@ -280,7 +280,7 @@ fun AppTheme(content: @Composable () -> Unit) {
     }
 }
 
-// Use custom tokens
+// 使用自定义 token
 @Composable
 fun MyButton() {
     Button(
@@ -293,25 +293,25 @@ fun MyButton() {
 
 ---
 
-## Anti-Patterns
+## 反模式
 
-### Hardcoding Colors
+### 硬编码颜色
 ```kotlin
-// DON'T
+// 不应做
 Text("Hello", color = Color(0xFF000000))
 
-// DO
+// 应做
 Text("Hello", color = MaterialTheme.colorScheme.onSurface)
 ```
 
-### Ignoring Theme in Reusable Components
+### 在可复用组件中忽略主题
 ```kotlin
-// DON'T
+// 不应做
 fun MyCard(content: @Composable () -> Unit) {
     Box(modifier = Modifier.background(Color.White))
 }
 
-// DO
+// 应做
 fun MyCard(content: @Composable () -> Unit) {
     Surface(
         color = MaterialTheme.colorScheme.surface,
@@ -322,17 +322,17 @@ fun MyCard(content: @Composable () -> Unit) {
 }
 ```
 
-### Mixing Material 2 and Material 3
-Don't import both `androidx.compose.material` and `androidx.compose.material3`. Choose M3 for new projects.
+### 混合 Material 2 和 Material 3
+不要同时导入 `androidx.compose.material` 和 `androidx.compose.material3`。新项目选择 M3。
 
-### Not Providing All Theme Parameters
-Partial `MaterialTheme` calls may leave descendants with defaults:
+### 未提供所有主题参数
+部分 `MaterialTheme` 调用可能使后代使用默认值：
 
 ```kotlin
-// Unsafe if colorScheme varies by locale
+// 如果 colorScheme 因语言而异则不安全
 MaterialTheme(typography = customTypography) { ... }
 
-// Better
+// 更好
 MaterialTheme(
     colorScheme = currentColorScheme,
     typography = currentTypography,
@@ -342,8 +342,8 @@ MaterialTheme(
 
 ---
 
-## Resources
+## 资源
 
 - **Material 3 Tokens**: https://m3.material.io/
-- **Compose Material3 Docs**: https://developer.android.com/develop/ui/compose/designsystems/material3
-- **Dynamic Color**: Requires `androidx.compose.material3:material3` >= 1.1.0 and Android 12+
+- **Compose Material3 文档**: https://developer.android.com/develop/ui/compose/designsystems/material3
+- **Dynamic Color**: 需要 `androidx.compose.material3:material3` >= 1.1.0 和 Android 12+

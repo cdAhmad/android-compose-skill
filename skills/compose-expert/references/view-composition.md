@@ -1,61 +1,61 @@
-# Jetpack Compose View Composition Reference
+# Jetpack Compose 视图组合参考
 
-## Composable Function Naming Conventions
+## Composable 函数命名约定
 
-Names communicate intent. Follow these patterns consistently.
+名称传达意图。始终遵循这些模式。
 
-### Nouns (UI Components)
-- PascalCase, describe *what* the composable displays
-- Used for UI widgets, screens, layout building blocks
+### 名词（UI 组件）
+- PascalCase，描述 composable 显示*什么*
+- 用于 UI 控件、屏幕、布局构建块
 
 ```kotlin
 @Composable
-fun Button(...)  // Displays a button
+fun Button(...)  // 显示一个按钮
 
 @Composable
-fun UserCard(user: User)  // Displays a user card
+fun UserCard(user: User)  // 显示一个用户卡片
 
 @Composable
-fun LoginScreen()  // Displays a login screen
+fun LoginScreen()  // 显示一个登录屏幕
 
 @Composable
-fun CheckboxWithLabel(...)  // Displays a checkbox with label
+fun CheckboxWithLabel(...)  // 显示一个带标签的复选框
 ```
 
-### Verbs (Side Effects / Effects)
-- PascalCase, describe *what action* happens
-- Used for composables that don't emit UI, only perform side effects
+### 动词（副作用 / Effect）
+- PascalCase，描述*发生什么动作*
+- 用于只执行副作用而不发射 UI 的 composable
 
 ```kotlin
 @Composable
-fun LaunchedEffect(...)  // Launches a coroutine
+fun LaunchedEffect(...)  // 启动一个协程
 
 @Composable
-fun DisposableEffect(...)  // Manages resource lifecycle
+fun DisposableEffect(...)  // 管理资源生命周期
 
 @Composable
-fun SideEffect(...)  // Performs a side effect
+fun SideEffect(...)  // 执行一个副作用
 ```
 
-### Anti-Pattern: Ambiguous Names
+### 反模式：歧义名称
 ```kotlin
-// ❌ Unclear if this is a UI component or effect
+// ❌ 不清楚这是 UI 组件还是 effect
 @Composable
 fun HandleLogin(...)
 
-// ✅ Explicit
+// ✅ 明确
 @Composable
-fun LoginScreen(...)  // Displays UI
+fun LoginScreen(...)  // 显示 UI
 
 @Composable
-fun PerformLogin(...)  // Side effect function (if truly a side effect)
+fun PerformLogin(...)  // 副作用函数（如果真的是副作用）
 ```
 
-## The Slot Pattern
+## Slot 模式
 
-Accept `@Composable` lambda parameters to create flexible, reusable containers.
+接受 `@Composable` lambda 参数以创建灵活、可复用的容器。
 
-### Basic Slot Pattern
+### 基本 Slot 模式
 ```kotlin
 @Composable
 fun Card(
@@ -71,14 +71,14 @@ fun Card(
     }
 }
 
-// Usage
+// 使用
 Card {
     Text("Hello")
     Image(...)
 }
 ```
 
-### Multiple Slots
+### 多个 Slot
 ```kotlin
 @Composable
 fun ListItem(
@@ -98,7 +98,7 @@ fun ListItem(
     }
 }
 
-// Usage
+// 使用
 ListItem(
     icon = { Icon(Icons.Default.Person, "") },
     title = { Text("Alice") },
@@ -107,53 +107,53 @@ ListItem(
 )
 ```
 
-**Key principle:** Slots accept `@Composable` lambdas, not pre-composed values. This ensures composition is deferred and scope-aware.
+**关键原则：** Slot 接受 `@Composable` lambda，而非预先组合的值。这确保组合被推迟且感知作用域。
 
 ```kotlin
-// ❌ Wrong: passes composed value
+// ❌ 错误：传递已组合的值
 fun CustomLayout(content: String) { ... }
 
-// ✅ Correct: passes composition lambda
+// ✅ 正确：传递组合 lambda
 fun CustomLayout(content: @Composable () -> Unit) { ... }
 ```
 
-Source: Material 3 composables in `androidx.compose.material3` use slots extensively.
+来源：`androidx.compose.material3` 中的 Material 3 composable 大量使用了 slot。
 
-## Extracting Composables
+## 提取 Composable
 
-Know when to extract and when to keep composables together.
+知道何时提取以及何时将 composable 放在一起。
 
-### Extract When
-- **Reused in multiple places:** DRY principle
-- **Single responsibility:** Composable handles one concern
-- **Easier to test:** Small, focused unit
-- **Performance:** Enables skipping and independent recomposition
+### 何时提取
+- **在多处复用：** DRY 原则
+- **单一职责：** Composable 处理一个关注点
+- **更易于测试：** 小、聚焦的单元
+- **性能：** 启用跳过和独立重组
 
 ```kotlin
-// ❌ Before: god composable
+// ❌ 之前：上帝 composable
 @Composable
 fun UserProfile(user: User) {
     Column {
-        // Header
+        // 头部
         Box(modifier = Modifier.fillMaxWidth()) {
             Image(user.photo)
             Text(user.name, style = MaterialTheme.typography.headlineSmall)
             IconButton({ /* edit */ }) { Icon(Icons.Default.Edit, "") }
         }
 
-        // Stats
+        // 统计
         Row(modifier = Modifier.fillMaxWidth()) {
             StatItem(user.followers, "Followers")
             StatItem(user.following, "Following")
             StatItem(user.posts, "Posts")
         }
 
-        // Bio
+        // 简介
         Text(user.bio, style = MaterialTheme.typography.bodyMedium)
     }
 }
 
-// ✅ After: extracted composables
+// ✅ 之后：提取的 composable
 @Composable
 fun UserProfile(user: User) {
     Column {
@@ -173,33 +173,33 @@ private fun UserStats(user: User) { ... }
 private fun UserBio(bio: String) { ... }
 ```
 
-### Don't Extract When
-- **Single use:** Extraction adds indirection without benefit
-- **Tightly coupled logic:** Would require passing many parameters
-- **Too small:** Single `Text()` or `Icon()` doesn't need extraction
+### 何时不提取
+- **单次使用：** 提取增加间接性而无益处
+- **紧耦合逻辑：** 需要传递很多参数
+- **太小：** 单个 `Text()` 或 `Icon()` 不需要提取
 
 ```kotlin
-// ❌ Over-extraction: trivial wrapper
+// ❌ 过度提取：琐碎包装器
 @Composable
 private fun UserName(name: String) {
     Text(name, style = MaterialTheme.typography.headlineSmall)
 }
 
-// ✅ Keep inline if only used once
+// ✅ 如果只使用一次则保持内联
 @Composable
 fun UserProfile(user: User) {
     Text(user.name, style = MaterialTheme.typography.headlineSmall)
 }
 ```
 
-## Stateful vs Stateless Composables
+## 有状态 vs 无状态 Composable
 
-Structure composables as a stateless layer with optional stateful wrapper.
+将 composable 结构化为无状态层，并带有可选的有状态包装器。
 
-### Pattern: Stateless + Wrapper
+### 模式：无状态 + 包装器
 
 ```kotlin
-// ✅ Stateless composable (reusable, testable)
+// ✅ 无状态 composable（可复用、可测试）
 @Composable
 fun ToggleButton(
     isEnabled: Boolean,
@@ -216,7 +216,7 @@ fun ToggleButton(
     }
 }
 
-// ✅ Stateful wrapper (manages state, uses stateless child)
+// ✅ 有状态包装器（管理状态，使用无状态子组件）
 @Composable
 fun StatefulToggleButton(text: String = "Toggle") {
     var isEnabled by remember { mutableStateOf(false) }
@@ -227,26 +227,26 @@ fun StatefulToggleButton(text: String = "Toggle") {
     )
 }
 
-// Usage: choose based on need
+// 使用：根据需求选择
 @Composable
 fun MyScreen() {
-    // Use stateless when caller manages state
+    // 调用方管理状态时使用无状态
     var featureEnabled by remember { mutableStateOf(false) }
     ToggleButton(featureEnabled, { featureEnabled = it }, "Feature")
 
-    // Use stateful wrapper for isolated state
+    // 对简单情况使用有状态包装器
     StatefulToggleButton("Local Toggle")
 }
 ```
 
-**Advantage:** Caller can test and reuse `ToggleButton` without mocking state. `StatefulToggleButton` provides convenience for simple cases.
+**优势：** 调用方无需模拟状态即可测试和复用 `ToggleButton`。`StatefulToggleButton` 为简单情况提供便利。
 
-## Preview Annotations
+## Preview 注解
 
-Use previews for rapid UI development and regression testing.
+使用 preview 进行快速 UI 开发和回归测试。
 
 ### @Preview
-Basic preview of a single composable.
+单个 composable 的基本 preview。
 
 ```kotlin
 @Preview
@@ -255,7 +255,7 @@ fun UserCardPreview() {
     UserCard(user = User(1, "Alice"))
 }
 
-// Multiple previews
+// 多个 preview
 @Preview(name = "Light")
 @Preview(name = "Dark", uiMode = UI_MODE_NIGHT_YES)
 @Composable
@@ -265,7 +265,7 @@ fun UserCardPreviews() {
 ```
 
 ### @PreviewLightDark
-Automatically generates light and dark theme previews.
+自动生成亮色和暗色主题 preview。
 
 ```kotlin
 @PreviewLightDark
@@ -278,7 +278,7 @@ fun UserCardPreview() {
 ```
 
 ### @PreviewFontScale
-Shows how composable responds to different font sizes.
+显示 composable 如何响应不同字体大小。
 
 ```kotlin
 @Preview(fontScale = 0.8f, name = "Small Fonts")
@@ -291,7 +291,7 @@ fun TextPreview() {
 ```
 
 ### @PreviewScreenSizes
-Tests multiple screen dimensions.
+测试多种屏幕尺寸。
 
 ```kotlin
 @Preview(device = Devices.PHONE, name = "Phone")
@@ -303,19 +303,19 @@ fun ResponsiveLayoutPreview() {
 }
 ```
 
-Source: `androidx.compose.ui.tooling.preview`
+来源：`androidx.compose.ui.tooling.preview`
 
 ## CompositionLocal
 
-Provide implicit parameters without threading them through the hierarchy.
+无需通过层级逐层传递即可提供隐式参数。
 
-### When to Use
-- **Theming:** Pass `Colors`, `Typography` implicitly
-- **Navigation:** Access from deep in composable tree
-- **Locale/Strings:** Avoid passing through every composable
+### 何时使用
+- **主题化：** 隐式传递 `Colors`、`Typography`
+- **导航：** 从 composable 树深处访问
+- **区域设置/字符串：** 避免通过每个 composable 传递
 
 ```kotlin
-// ✅ Define at top level
+// ✅ 在顶层定义
 val LocalUser = staticCompositionLocalOf<User?> { null }
 
 @Composable
@@ -325,7 +325,7 @@ fun App(user: User) {
     }
 }
 
-// ✅ Access deep in tree without passing through every composable
+// ✅ 深入树中访问，无需通过每个 composable 传递
 @Composable
 fun UserGreeting() {
     val user = LocalUser.current
@@ -333,13 +333,13 @@ fun UserGreeting() {
 }
 ```
 
-### When NOT to Use
-- **Configuration params:** If only 1-2 levels deep, pass directly
-- **Frequently changing values:** Can cause unnecessary recomposition
-- **Dependencies:** Use dependency injection at ViewModel level
+### 何时不使用
+- **配置参数：** 如果只深 1-2 层，直接传递
+- **频繁变化的值：** 可能导致不必要的重组
+- **依赖项：** 在 ViewModel 级别使用依赖注入
 
 ```kotlin
-// ❌ Over-use: should pass `title` directly
+// ❌ 过度使用：应直接传递 `title`
 val LocalTitle = staticCompositionLocalOf<String> { "" }
 
 @Composable
@@ -349,7 +349,7 @@ fun Parent() {
     }
 }
 
-// ✅ Just pass it
+// ✅ 直接传递即可
 @Composable
 fun Parent(title: String) {
     Child(title = title)
@@ -359,23 +359,23 @@ fun Parent(title: String) {
 fun Child(title: String) { ... }
 ```
 
-**Types (recomposition scope is the key difference):**
-- `staticCompositionLocalOf`: When the value changes, the **entire subtree** below the `CompositionLocalProvider` is invalidated and recomposed. Use for values that truly never change during composition (theme, spacing, DI-provided dependencies).
-- `compositionLocalOf`: When the value changes, only composables that **actually read** `.current` are invalidated. Use for values that may change during composition (user session, locale, scroll state).
+**类型（关键区别在于重组范围）：**
+- `staticCompositionLocalOf`：值变化时，`CompositionLocalProvider` 下方的**整个子树**失效并重组。用于在组合期间真正从不变化的值（主题、间距、DI 提供的依赖）。
+- `compositionLocalOf`：值变化时，只有**实际读取** `.current` 的 composable 失效。用于可能在组合期间变化的值（用户会话、区域设置、滚动状态）。
 
-## Composable Return Values
+## Composable 返回值
 
-**Never return values from composables.** Use callbacks instead.
+**永远不要从 composable 返回值。** 使用回调代替。
 
 ```kotlin
-// ❌ Wrong: composables don't return values
+// ❌ 错误：composable 不返回值
 @Composable
 fun UserInput(): String {
     var text by remember { mutableStateOf("") }
-    return text  // Can't do this
+    return text  // 不能这样做
 }
 
-// ✅ Correct: callback pattern
+// ✅ 正确：回调模式
 @Composable
 fun UserInput(onUserInput: (String) -> Unit) {
     var text by remember { mutableStateOf("") }
@@ -383,27 +383,27 @@ fun UserInput(onUserInput: (String) -> Unit) {
         value = text,
         onValueChange = {
             text = it
-            onUserInput(it)  // Notify parent
+            onUserInput(it)  // 通知父组件
         }
     )
 }
 
-// Usage
+// 使用
 @Composable
 fun FormScreen() {
     UserInput(onUserInput = { input -> /* handle */ })
 }
 ```
 
-**Rationale:** Composables are executed during composition, which happens at unpredictable times and may be skipped or reordered.
+**原理：** Composable 在组合期间执行，这发生在不可预测的时间，可能被跳过或重新排序。
 
-## Screen-Level Composables
+## Screen 级别 Composable
 
-Structure screens as a thin ViewModel integration layer above pure composables.
+将 screen 结构化为纯 composable 之上的薄 ViewModel 集成层。
 
-### Recommended Pattern
+### 推荐模式
 ```kotlin
-// ✅ Screen composable: connects ViewModel
+// ✅ Screen composable：连接 ViewModel
 @Composable
 fun UserDetailsScreen(
     viewModel: UserDetailsViewModel = hiltViewModel(),
@@ -420,7 +420,7 @@ fun UserDetailsScreen(
     )
 }
 
-// ✅ Content composable: pure (testable, reusable)
+// ✅ Content composable：纯的（可测试、可复用）
 @Composable
 private fun UserDetailsContent(
     uiState: UiState,
@@ -433,7 +433,7 @@ private fun UserDetailsContent(
     }
 }
 
-// ✅ Composable for preview/testing
+// ✅ 用于 preview/测试的 composable
 @Preview
 @Composable
 private fun UserDetailsContentPreview() {
@@ -444,41 +444,41 @@ private fun UserDetailsContentPreview() {
 }
 ```
 
-**Benefits:**
-- Public screen composable integrates ViewModel
-- Private content composable is pure, testable, previewable
-- Clear separation: UI logic (public) vs rendering (private)
+**好处：**
+- Public screen composable 集成 ViewModel
+- Private content composable 是纯的、可测试的、可 preview 的
+- 清晰的分离：UI 逻辑（public）vs 渲染（private）
 
-**Anti-pattern:** Passing ViewModel to child composables. Keep it at screen level only.
+**反模式：** 将 ViewModel 传递给子 composable。只保持在 screen 级别。
 
 ```kotlin
-// ❌ Couples child to ViewModel
+// ❌ 将子组件与 ViewModel 耦合
 @Composable
 fun UserCard(viewModel: UserViewModel) {
     val user by viewModel.user.collectAsStateWithLifecycle()
     Text(user.name)
 }
 
-// ✅ Pass only the data
+// ✅ 只传递数据
 @Composable
 fun UserCard(user: User) {
     Text(user.name)
 }
 ```
 
-## Reusability Guidelines
+## 可复用性指南
 
-Design composables to be configurable without over-parameterization.
+设计 composable 使其可配置但不过度参数化。
 
-### Configuration via Parameters
+### 通过参数配置
 ```kotlin
-// ✅ Expose what varies, hide what doesn't
+// ✅ 暴露变化的部分，隐藏不变的部分
 @Composable
 fun Card(
     modifier: Modifier = Modifier,
     content: @Composable () -> Unit
 ) {
-    // Internal: fixed styling, padding, etc.
+    // 内部：固定样式、padding 等
     Box(
         modifier = modifier
             .background(Color.White)
@@ -490,9 +490,9 @@ fun Card(
 }
 ```
 
-### Avoid Parameter Explosion
+### 避免参数爆炸
 ```kotlin
-// ❌ Too many parameters, hard to use
+// ❌ 太多参数，难以使用
 @Composable
 fun Button(
     text: String,
@@ -504,7 +504,7 @@ fun Button(
     ...
 )
 
-// ✅ Sensible defaults, style objects
+// ✅ 合理的默认值、样式对象
 @Composable
 fun Button(
     text: String,
@@ -513,38 +513,38 @@ fun Button(
     onClick: () -> Unit
 ) { ... }
 
-// Or: use Material composables with built-in styles
+// 或者：使用内置样式的 Material composable
 @Composable
 fun Button(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
     ...
-) { ... }  // Material3 Button has reasonable defaults
+) { ... }  // Material3 Button 有合理的默认值
 ```
 
-## Common Anti-Patterns
+## 常见反模式
 
-### God Composables
+### 上帝 Composable
 ```kotlin
-// ❌ Does too much
+// ❌ 做得太多
 @Composable
 fun Dashboard() {
-    // Header
-    Box { /* 20 lines */ }
+    // 头部
+    Box { /* 20 行 */ }
 
-    // List
+    // 列表
     LazyColumn {
-        items(items) { /* 15 lines */ }
+        items(items) { /* 15 行 */ }
     }
 
-    // Footer
-    Box { /* 15 lines */ }
+    // 底部
+    Box { /* 15 行 */ }
 
-    // Dialogs, side effects, state management...
+    // 对话框、副作用、状态管理...
 }
 
-// ✅ Extract and delegate
+// ✅ 提取并委托
 @Composable
 fun Dashboard() {
     Column {
@@ -555,15 +555,15 @@ fun Dashboard() {
 }
 ```
 
-### Deep Nesting
+### 深层嵌套
 ```kotlin
-// ❌ Hard to read and debug
+// ❌ 难以阅读和调试
 @Composable
 fun LoginScreen() {
     Box { Column { Row { Card { Box { Text { ... } } } } } }
 }
 
-// ✅ Intermediate variables and extraction
+// ✅ 中间变量和提取
 @Composable
 fun LoginScreen() {
     val form = loginFormState()
@@ -574,15 +574,15 @@ fun LoginScreen() {
 }
 ```
 
-### Passing ViewModel to Children
+### 将 ViewModel 传递给子组件
 ```kotlin
-// ❌ Violates composition boundaries
+// ❌ 违反组合边界
 @Composable
 fun ParentScreen(viewModel: ParentViewModel) {
-    ChildCard(viewModel = viewModel)  // Don't do this
+    ChildCard(viewModel = viewModel)  // 不要这样做
 }
 
-// ✅ Extract data, pass to child
+// ✅ 提取数据，传递给子组件
 @Composable
 fun ParentScreen(viewModel: ParentViewModel) {
     val data by viewModel.data.collectAsStateWithLifecycle()
@@ -592,45 +592,45 @@ fun ParentScreen(viewModel: ParentViewModel) {
 
 ---
 
-**Source references:** `androidx.compose.material3`, `androidx.compose.ui.tooling.preview`, `androidx.compose.runtime.CompositionLocal`
+**来源参考：** `androidx.compose.material3`、`androidx.compose.ui.tooling.preview`、`androidx.compose.runtime.CompositionLocal`
 
-## Design-to-Composable Decomposition
+## 设计到 Composable 分解
 
-A systematic 5-step process for translating a visual design (Figma frame, screenshot, or spec) into a composable tree:
+将视觉设计（Figma 画框、截图或规范）翻译成 composable 树的系统性 5 步过程：
 
-**Step 1: Identify the root layout structure**
-- Full-screen Scaffold? (TopAppBar + content + bottom bar + FAB)
-- Scrollable content? (LazyColumn vs Column with verticalScroll)
-- Tabbed layout? (TabRow + HorizontalPager)
-- Dialog or bottom sheet?
+**步骤 1：识别根布局结构**
+- 全屏 Scaffold？（TopAppBar + 内容 + 底栏 + FAB）
+- 可滚动内容？（LazyColumn vs 带 verticalScroll 的 Column）
+- 标签布局？（TabRow + HorizontalPager）
+- 对话框或底栏？
 
-**Step 2: Decompose into visual sections (top-down)**
-- Identify major horizontal sections (header, content area, footer)
-- Within each section, identify horizontal groupings (icon + text rows, card grids)
-- This mirrors the DCGen divide-and-conquer approach: split horizontally first, then vertically
+**步骤 2：自上而下分解为视觉区块**
+- 识别主要水平区块（头部、内容区、底部）
+- 在每个区块内，识别水平分组（图标 + 文本行、卡片网格）
+- 这镜像 DCGen 分而治之的方法：先水平分割，再垂直分割
 
-**Step 3: For each section, identify the layout type**
-- Items stacked vertically with equal spacing -> `Column` with `Arrangement.spacedBy()`
-- Items side by side -> `Row` with weights or fixed sizes
-- Items overlapping -> `Box` with alignment modifiers
-- Grid of cards -> `LazyGrid` or `FlowRow`
-- Scrollable list of items -> `LazyColumn`
+**步骤 3：对每个区块，识别布局类型**
+- 垂直堆叠且等间距的条目 -> 带 `Arrangement.spacedBy()` 的 `Column`
+- 并排的条目 -> 带 weight 或固定尺寸的 `Row`
+- 重叠的条目 -> 带 alignment modifier 的 `Box`
+- 卡片网格 -> `LazyGrid` 或 `FlowRow`
+- 可滚动的条目列表 -> `LazyColumn`
 
-**Step 4: Extract visual properties and map to theme**
-- Background colors -> `MaterialTheme.colorScheme.*`
-- Typography -> `MaterialTheme.typography.*` (headlineLarge, bodyMedium, etc.)
-- Spacing -> 4dp/8dp grid increments, use `Arrangement.spacedBy()` and `Modifier.padding()`
-- Corner radius -> `MaterialTheme.shapes.*`
-- Elevation -> `Card` or `Surface` with `tonalElevation`
+**步骤 4：提取视觉属性并映射到主题**
+- 背景色 -> `MaterialTheme.colorScheme.*`
+- 排版 -> `MaterialTheme.typography.*`（headlineLarge、bodyMedium 等）
+- 间距 -> 4dp/8dp 网格增量，使用 `Arrangement.spacedBy()` 和 `Modifier.padding()`
+- 圆角 -> `MaterialTheme.shapes.*`
+- 阴影 -> 带 `tonalElevation` 的 `Card` 或 `Surface`
 
-**Step 5: Identify interactive elements**
-- Buttons, text fields, toggles, checkboxes -> map to Material 3 components
-- Custom clickable areas -> `Modifier.clickable` with `role = Role.Button`
-- Ensure 48dp minimum touch targets
+**步骤 5：识别交互元素**
+- 按钮、文本框、切换、复选框 -> 映射到 Material 3 组件
+- 自定义可点击区域 -> 带 `role = Role.Button` 的 `Modifier.clickable`
+- 确保 48dp 最小触摸目标
 
-## Screen Structure Patterns
+## Screen 结构模式
 
-The standard screen pattern separates ViewModel integration from UI:
+标准 screen 模式将 ViewModel 集成与 UI 分离：
 
 ```kotlin
 @Composable
@@ -663,7 +663,7 @@ private fun ConversationContent(
             }
         }
     ) { innerPadding ->
-        // MUST use innerPadding -- ignoring it causes content overlap
+        // 必须使用 innerPadding -- 忽略它会导致内容重叠
         when (val state = uiState) {
             is ConversationUiState.Loading -> {
                 Box(Modifier.fillMaxSize().padding(innerPadding), contentAlignment = Alignment.Center) {
@@ -688,11 +688,11 @@ private fun ConversationContent(
 }
 ```
 
-Key pattern: ViewModel at screen level, pure content composable underneath. The content composable receives state + callbacks, never the ViewModel. This makes it previewable and testable.
+关键模式：ViewModel 在 screen 级别，纯 content composable 在其下方。Content composable 接收 state + 回调，绝不接收 ViewModel。这使其可 preview 和可测试。
 
-## Composite Preview Annotations
+## 组合 Preview 注解
 
-Define once, use everywhere:
+一次定义，到处使用：
 
 ```kotlin
 @Preview(name = "Light", uiMode = Configuration.UI_MODE_NIGHT_NO)
@@ -705,7 +705,7 @@ Define once, use everywhere:
 annotation class ComponentPreviews
 ```
 
-Apply to every extracted composable:
+应用到每个提取的 composable：
 ```kotlin
 @ComponentPreviews
 @Composable
@@ -719,13 +719,13 @@ private fun ConversationRowPreview() {
 }
 ```
 
-For data-driven previews, use `PreviewParameterProvider`:
+对于数据驱动的 preview，使用 `PreviewParameterProvider`：
 ```kotlin
 class ConversationPreviewProvider : PreviewParameterProvider<Conversation> {
     override val values = sequenceOf(
         Conversation(id = "1", title = "Short title", unreadCount = 0),
         Conversation(id = "2", title = "Very long conversation title that might wrap", unreadCount = 99),
-        Conversation(id = "3", title = "", unreadCount = 0), // Empty title edge case
+        Conversation(id = "3", title = "", unreadCount = 0), // 空标题边界情况
     )
 }
 
@@ -738,30 +738,30 @@ private fun ConversationRowPreview(
 }
 ```
 
-Device-specific previews (`Devices.TABLET`) require the Android `@Preview` annotation from `androidx.compose.ui.tooling.preview`.
+设备特定的 preview（`Devices.TABLET`）需要来自 `androidx.compose.ui.tooling.preview` 的 Android `@Preview` 注解。
 
-## Adaptive Layouts
+## 自适应布局
 
-Use `WindowSizeClass` to adapt layouts for different screen sizes:
+使用 `WindowSizeClass` 为不同屏幕尺寸调整布局：
 
 ```kotlin
 @Composable
 fun AdaptiveScreen(windowSizeClass: WindowSizeClass) {
     when (windowSizeClass.widthSizeClass) {
         WindowWidthSizeClass.Compact -> {
-            // Phone: single column
+            // 手机：单列
             SinglePaneLayout()
         }
         WindowWidthSizeClass.Medium -> {
-            // Small tablet: two panes
+            // 小平板：双面板
             TwoPaneLayout()
         }
         WindowWidthSizeClass.Expanded -> {
-            // Large tablet/desktop: list-detail
+            // 大平板/桌面：列表-详情
             ListDetailLayout()
         }
     }
 }
 ```
 
-For navigation, use `NavigationSuiteScaffold` which automatically switches between bottom nav (compact), rail (medium), and drawer (expanded).
+对于导航，使用 `NavigationSuiteScaffold`，它自动在底部导航（compact）、侧边栏（medium）和抽屉（expanded）之间切换。

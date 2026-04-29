@@ -1,20 +1,20 @@
-# Jetpack Compose Modifiers Reference
+# Jetpack Compose Modifier 参考
 
-Modifiers are the primary way to decorate or augment a composable. They apply layout, drawing, gesture, and behavior. Understanding modifier ordering and the available APIs is critical for correctness and performance.
+Modifier 是装饰或增强 composable 的主要方式。它们应用布局、绘制、手势和行为。理解 modifier 的顺序和可用 API 对正确性和性能至关重要。
 
-## Modifier Chain Ordering
+## Modifier 链式顺序
 
-Order matters. Modifiers are applied left-to-right in the DSL, but conceptually they wrap bottom-to-top. Each modifier receives a lambda that draws/measures the content below it.
+顺序很重要。Modifier 在 DSL 中从左到右应用，但概念上是从下到上包裹。每个 modifier 接收一个绘制/测量其下方内容的 lambda。
 
 ```kotlin
-// Example: different results depending on order
+// 示例：不同顺序产生不同结果
 Box(
     Modifier
         .background(Color.Red)
         .padding(16.dp)
         .size(100.dp)
 )
-// Red background wraps the padded content, which wraps the 100x100 box
+// 红色背景包裹带内边距的内容，内容再包裹 100x100 的 Box
 
 Box(
     Modifier
@@ -22,57 +22,57 @@ Box(
         .padding(16.dp)
         .background(Color.Red)
 )
-// 100x100 box is padded, then the whole thing (132x132) gets red background
+// 100x100 的 Box 先加内边距，然后整体（132x132）获得红色背景
 ```
 
-**Do:** Order modifiers from outer (layout/sizing) to inner (styling/interaction).
-**Don't:** Put `size` after `padding` if you want the padding included in the final size.
+**应做：** 从外层（布局/尺寸）到内层（样式/交互）排列 modifier。
+**不应做：** 如果希望内边距包含在最终尺寸中，不要将 `size` 放在 `padding` 之后。
 
-Source: `compose/ui/ui/src/commonMain/kotlin/androidx/compose/ui/Modifier.kt`
+来源：`compose/ui/ui/src/commonMain/kotlin/androidx/compose/ui/Modifier.kt`
 
-## Common Modifier Patterns
+## 常见 Modifier 模式
 
-### Padding and Sizing
+### Padding 和 Sizing
 
 ```kotlin
-// Padding: external spacing around content
+// Padding：内容周围的外边距
 Box(Modifier.padding(16.dp)) { }
 
-// Size: exact dimensions (overrides requested size from parent)
+// Size：精确尺寸（覆盖父组件请求的尺寸）
 Box(Modifier.size(100.dp)) { }
 Box(Modifier.size(width = 200.dp, height = 100.dp)) { }
 
-// FillMaxWidth/FillMaxHeight: expand to available space
-Box(Modifier.fillMaxWidth(0.8f)) { }  // 80% of parent width
-Box(Modifier.fillMaxSize()) { }       // 100% of parent
+// FillMaxWidth/FillMaxHeight：扩展至可用空间
+Box(Modifier.fillMaxWidth(0.8f)) { }  // 父宽度的 80%
+Box(Modifier.fillMaxSize()) { }       // 父组件的 100%
 
-// Do: use fillMaxWidth before adding padding for alignment clarity
+// 应做：先 fillMaxWidth 再加 padding，对齐更清晰
 Column(Modifier.fillMaxWidth()) {
     Box(Modifier.padding(16.dp).fillMaxWidth()) { }
 }
 
-// Don't: apply fillMaxWidth after background if you want background to expand
-// Instead:
+// 不应做：如果希望背景扩展，不要在 background 之后应用 fillMaxWidth
+// 正确做法：
 Box(Modifier.fillMaxWidth().background(Color.Blue)) { }
 ```
 
-### Background and Border
+### Background 和 Border
 
 ```kotlin
-// Background applies a color to the surface
+// Background 为表面应用颜色
 Box(Modifier.background(Color.Blue)) { }
 Box(Modifier.background(Color.Blue, shape = RoundedCornerShape(8.dp))) { }
 
-// Border draws a stroke (order matters!)
+// Border 绘制描边（顺序很重要！）
 Box(
     Modifier
         .size(100.dp)
         .border(2.dp, Color.Black, RoundedCornerShape(8.dp))
         .background(Color.White)
 )
-// The border is drawn AFTER background in visual order (because modifiers below it are drawn first)
+// Border 在视觉顺序上在 background 之后绘制（因为下方的 modifier 先绘制）
 
-// Combine background + border: apply border first in chain
+// 组合 background + border：在链中先应用 border
 Box(
     Modifier
         .border(2.dp, Color.Black, RoundedCornerShape(8.dp))
@@ -83,19 +83,19 @@ Box(
 ### Clipping
 
 ```kotlin
-// Clip content to a shape
+// 将内容裁剪为指定形状
 Box(Modifier.clip(RoundedCornerShape(8.dp))) {
     Image(painter = painterResource(id = R.drawable.my_image), contentDescription = "")
 }
 
-// Do: apply clip before background if you want background inside the shape
+// 应做：如果希望 background 在形状内部，先应用 clip
 Box(
     Modifier
         .clip(RoundedCornerShape(8.dp))
         .background(Color.Blue)
 ) { }
 
-// Don't: apply background then clip (works but semantically wrong)
+// 不应做：先 background 再 clip（能工作但语义上不正确）
 Box(
     Modifier
         .background(Color.Blue)
@@ -103,23 +103,23 @@ Box(
 ) { }
 ```
 
-## Clickable and Combined Clickable
+## Clickable 和 Combined Clickable
 
 ```kotlin
-// Basic click handling with ripple effect (Material 3 default)
+// 基本点击处理，带涟漪效果（Material 3 默认）
 Button(onClick = { }) { Text("Click me") }
 
-// Manual clickable with ripple
+// 手动 clickable，带涟漪
 Box(
     Modifier
         .size(100.dp)
         .clickable(
-            indication = ripple(),  // Material ripple feedback
+            indication = ripple(),  // Material 涟漪反馈
             interactionSource = remember { MutableInteractionSource() }
-        ) { /* handle click */ }
+        ) { /* 处理点击 */ }
 )
 
-// Combined clickable: long press + double click + click
+// Combined clickable：长按 + 双击 + 单击
 Box(
     Modifier
         .combinedClickable(
@@ -130,7 +130,7 @@ Box(
         )
 ) { }
 
-// Do: provide explicit interactionSource for testing/state observation
+// 应做：为测试/状态观察提供显式 interactionSource
 val interactionSource = remember { MutableInteractionSource() }
 Box(
     Modifier.clickable(
@@ -139,15 +139,15 @@ Box(
     ) { }
 )
 
-// Don't: forget indication parameter (will have no visual feedback)
-Box(Modifier.clickable { }) { }  // No ripple
+// 不应做：忘记 indication 参数（将没有视觉反馈）
+Box(Modifier.clickable { }) { }  // 无涟漪
 ```
 
-## Modifier.composed vs Modifier.Node
+## Modifier.composed 与 Modifier.Node
 
-The old API (`composed`) is being phased out in favor of the new `ModifierNodeElement` API. Both work, but new code should use the latter.
+旧 API（`composed`）正在被淘汰，推荐使用新的 `ModifierNodeElement` API。两者都能工作，但新代码应使用后者。
 
-### Old API: Modifier.composed
+### 旧 API：Modifier.composed
 
 ```kotlin
 fun Modifier.myCustomModifier(value: String) = composed {
@@ -160,17 +160,17 @@ fun Modifier.myCustomModifier(value: String) = composed {
 }
 ```
 
-- Creates a new composable scope
-- Captures composition locals
-- Causes recomposition when remember state changes
-- Deprecated but still supported
+- 创建新的 composable 作用域
+- 捕获 composition locals
+- remember state 变化时触发重组
+- 已废弃但仍受支持
 
-### New API: Modifier.Node
+### 新 API：Modifier.Node
 
 ```kotlin
 class MyCustomNode(val value: String) : Modifier.Node {
     override fun onDetach() {
-        // Cleanup when removed
+        // 移除时清理
     }
 }
 
@@ -184,17 +184,17 @@ data class MyCustomElement(val value: String) : ModifierNodeElement<MyCustomNode
 fun Modifier.myCustomModifier(value: String) = this.then(MyCustomElement(value))
 ```
 
-**Do:** Use `Modifier.Node` for new custom modifiers. It's more efficient and doesn't create composition scopes.
-**Don't:** Create new `composed` modifiers; migrate existing ones to `Modifier.Node`.
+**应做：** 为新的自定义 modifier 使用 `Modifier.Node`。它更高效且不创建 composition 作用域。
+**不应做：** 创建新的 `composed` modifier；将现有的迁移到 `Modifier.Node`。
 
-Source: `compose/ui/ui/src/commonMain/kotlin/androidx/compose/ui/modifier/ModifierNodeElement.kt`
+来源：`compose/ui/ui/src/commonMain/kotlin/androidx/compose/ui/modifier/ModifierNodeElement.kt`
 
-## Layout vs Drawing vs Pointer Input Modifiers
+## Layout vs Drawing vs Pointer Input Modifier
 
-Modifiers fall into categories that affect when they execute:
+Modifier 分为不同类别，影响执行时机：
 
 ```kotlin
-// Layout modifier: affects measurement and layout pass
+// Layout modifier：影响测量和布局阶段
 fun Modifier.customSize(width: Dp, height: Dp) =
     this.then(object : LayoutModifier {
         override fun MeasureScope.measure(measurable: Measurable, constraints: Constraints) =
@@ -202,24 +202,24 @@ fun Modifier.customSize(width: Dp, height: Dp) =
                 .run { layout(width = size.width, height = size.height) { place(0, 0) } }
     })
 
-// Drawing modifier: doesn't affect layout, just draws after content
+// Drawing modifier：不影响布局，只在内容后绘制
 fun Modifier.customDraw() = drawBehind { drawCircle(Color.Red) }
 
-// Pointer input modifier: handles gestures/events
+// Pointer input modifier：处理手势/事件
 fun Modifier.detectCustomGesture() = pointerInput(Unit) {
-    detectTapGestures { offset -> /* handle */ }
+    detectTapGestures { offset -> /* 处理 */ }
 }
 ```
 
-**Do:** Use layout modifiers for sizing/positioning, drawing modifiers for visual effects, pointer modifiers for input.
-**Don't:** Use layout modifiers to create visual effects; use drawing modifiers instead.
+**应做：** 布局 modifier 用于尺寸/定位，绘制 modifier 用于视觉效果，指针 modifier 用于输入。
+**不应做：** 使用布局 modifier 创建视觉效果；应使用绘制 modifier。
 
-## Modifier.graphicsLayer — Performance Implications
+## Modifier.graphicsLayer — 性能影响
 
-`graphicsLayer` applies transformations at the graphics rendering level. It's more efficient than recomposing for animations.
+`graphicsLayer` 在图形渲染层面应用变换。对于动画来说，它比重组更高效。
 
 ```kotlin
-// Efficient: transforms applied on the graphics layer, no recomposition
+// 高效：在 graphics layer 应用变换，无重组
 Box(
     Modifier.graphicsLayer(
         scaleX = 1.2f,
@@ -230,7 +230,7 @@ Box(
     )
 ) { }
 
-// Less efficient: recomposes every frame
+// 低效：每帧重组
 var scaleX by remember { mutableStateOf(1f) }
 LaunchedEffect(Unit) {
     while (true) {
@@ -241,58 +241,58 @@ LaunchedEffect(Unit) {
 Box(Modifier.scale(scaleX)) { }
 ```
 
-**Do:** Use `graphicsLayer` for animations and frequent property changes.
-**Don't:** Animate state values that trigger recomposition when `graphicsLayer` would suffice.
+**应做：** 为动画和频繁属性变化使用 `graphicsLayer`。
+**不应做：** 在 `graphicsLayer` 足够时动画会触发重组的 state 值。
 
-Source: `compose/ui/ui/src/commonMain/kotlin/androidx/compose/ui/graphics/GraphicsLayerModifier.kt`
+来源：`compose/ui/ui/src/commonMain/kotlin/androidx/compose/ui/graphics/GraphicsLayerModifier.kt`
 
-## Modifier.testTag — UI Testing
+## Modifier.testTag — UI 测试
 
 ```kotlin
-// Add a test tag for finding composables in tests
+// 添加 test tag 以便在测试中找到 composable
 Box(Modifier.testTag("my_box")) { }
 
-// In tests:
+// 在测试中：
 composeTestRule.onNodeWithTag("my_box").performClick()
 composeTestRule.onNodeWithTag("my_box").assertIsDisplayed()
 ```
 
-**Do:** Use unique, descriptive test tags.
-**Don't:** Use test tags in production code for business logic.
+**应做：** 使用唯一、描述性的 test tag。
+**不应做：** 在生产代码中将 test tag 用于业务逻辑。
 
-## Review Checklist: Modifier Ordering Bugs
+## 审查清单：Modifier 顺序 Bug
 
-### Hardcoded Size After Caller's `modifier` Parameter
+### 调用方的 `modifier` 参数后硬编码尺寸
 
-When a composable accepts `modifier: Modifier = Modifier` and chains fixed `.height()` / `.width()` / `.size()` after it, caller size constraints are silently ignored or clamped.
+当 composable 接受 `modifier: Modifier = Modifier` 并在其后链式连接固定的 `.height()` / `.width()` / `.size()` 时，调用方的尺寸约束会被静默忽略或截断。
 
 ```kotlin
-// BAD: caller's height is outer constraint, component's 172.dp is inner — component always renders at 172dp
+// BAD：调用方的高度是外层约束，组件的 172.dp 是内层 — 组件始终渲染为 172dp
 @Composable
 fun BannerCard(
     modifier: Modifier = Modifier,
 ) {
     Box(
-        modifier = modifier          // caller constraints applied first (outer)
+        modifier = modifier          // 调用方约束先应用（外层）
             .fillMaxWidth()
-            .height(172.dp)          // inner — wins when smaller, clamped when larger
+            .height(172.dp)          // 内层 — 更小时胜出，更大时截断
             .clip(RoundedCornerShape(18.dp))
             .background(Color.Green.copy(alpha = 0.08f)),
     )
 }
 
-// Caller expects 200dp but gets 172dp:
+// 调用方期望 200dp 但得到 172dp：
 BannerCard(modifier = Modifier.height(200.dp))
 
-// Caller expects 100dp — component gets clamped/squished:
+// 调用方期望 100dp — 组件被截断/压缩：
 BannerCard(modifier = Modifier.height(100.dp))
 ```
 
-**Why it happens:** Modifier chain resolves outer-to-inner (left-to-right). Outer constraint sets max bounds, inner constraint requests within those bounds. First size constraint wins as the ceiling.
+**原因：** Modifier 链从外到内（左到右）解析。外层约束设置最大边界，内层约束在边界内请求。第一个尺寸约束作为上限胜出。
 
-**Fix option 1:** Component defaults first, caller can override via `.then(modifier)`:
+**修复方案 1：** 组件先设置默认值，调用方可通过 `.then(modifier)` 覆盖：
 ```kotlin
-// GOOD: component sets defaults, caller's modifier applied last and can override
+// GOOD：组件设置默认值，调用方的 modifier 最后应用并可覆盖
 @Composable
 fun BannerCard(
     modifier: Modifier = Modifier,
@@ -303,14 +303,14 @@ fun BannerCard(
             .height(172.dp)
             .clip(RoundedCornerShape(18.dp))
             .background(Color.Green.copy(alpha = 0.08f))
-            .then(modifier),         // caller can override size
+            .then(modifier),         // 调用方可覆盖尺寸
     )
 }
 ```
 
-**Fix option 2:** Use `defaultMinSize` for flexible sizing:
+**修复方案 2：** 使用 `defaultMinSize` 实现灵活尺寸：
 ```kotlin
-// GOOD: minimum guaranteed, caller can make it larger
+// GOOD：保证最小值，调用方可使其更大
 @Composable
 fun BannerCard(
     modifier: Modifier = Modifier,
@@ -318,43 +318,43 @@ fun BannerCard(
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .defaultMinSize(minHeight = 172.dp)  // floor, not ceiling
+            .defaultMinSize(minHeight = 172.dp)  // 下限，不是上限
             .clip(RoundedCornerShape(18.dp))
             .background(Color.Green.copy(alpha = 0.08f)),
     )
 }
 ```
 
-**Rule:** When a composable accepts `modifier: Modifier = Modifier`, never chain fixed `.height()` / `.width()` / `.size()` after the caller's modifier — caller constraints become outer bounds and the component's fixed size either ignores or gets clamped by them. Use `.then(modifier)` at the end or `defaultMinSize` for flexible sizing. Flag in every PR review.
+**规则：** 当 composable 接受 `modifier: Modifier = Modifier` 时，永远不要在调用方的 modifier 之后链式连接固定的 `.height()` / `.width()` / `.size()` — 调用方约束成为外层边界，组件固定尺寸要么被忽略要么被截断。使用末尾的 `.then(modifier)` 或 `defaultMinSize` 实现灵活尺寸。在每次 PR 审查中标记此问题。
 
 ---
 
-## Anti-patterns
+## 反模式
 
-### Creating Modifiers in Composition
+### 在 Composition 中创建 Modifier
 
 ```kotlin
-// Don't: creates a new Modifier every recomposition
+// 不应做：每次重组都创建新 Modifier
 @Composable
 fun BadModifier() {
     Box(Modifier.padding(16.dp).background(Color.Blue)) { }
 }
 
-// Do: extract to a variable or parameter
+// 应做：提取为变量或参数
 @Composable
 fun GoodModifier(modifier: Modifier = Modifier) {
     Box(modifier.padding(16.dp).background(Color.Blue)) { }
 }
 ```
 
-### Conditional Modifier Chains Done Wrong
+### 错误的条件 Modifier 链
 
 ```kotlin
-// Don't: breaks type checking and readability
+// 不应做：破坏类型检查和可读性
 val mod = if (isSelected) Modifier.background(Color.Blue) else Modifier
 Box(mod.padding(16.dp)) { }
 
-// Do: use then() for conditional chaining
+// 应做：使用 then() 进行条件链式连接
 Box(
     Modifier
         .padding(16.dp)
@@ -364,4 +364,4 @@ Box(
 
 ---
 
-**Summary:** Master modifier ordering, prefer `Modifier.Node` over `composed`, and use `graphicsLayer` for animations.
+**总结：** 掌握 modifier 顺序，优先使用 `Modifier.Node` 而非 `composed`，为动画使用 `graphicsLayer`。

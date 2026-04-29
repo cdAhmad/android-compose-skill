@@ -1,20 +1,19 @@
-# Compose Styles API (Experimental)
+# Compose Styles API（实验性）
 
 > `@ExperimentalFoundationStyleApi` — `androidx.compose.foundation:foundation:1.11.0-alpha06`
 >
-> AOSP source: `compose/foundation/foundation/src/commonMain/kotlin/androidx/compose/foundation/style/`
+> AOSP 来源：`compose/foundation/foundation/src/commonMain/kotlin/androidx/compose/foundation/style/`
 
-## What is the Styles API?
+## 什么是 Styles API？
 
-A declarative, state-driven styling system for Compose. Instead of manually chaining modifiers
-and `animateXAsState` calls for every interaction state, you declare all visual states in a
-single `Style { }` block. The framework handles state detection, property interpolation, and
-animation automatically.
+Compose 的声明式、状态驱动的样式系统。无需为每个交互状态手动链式连接 modifier
+和 `animateXAsState` 调用，你只需在单个 `Style { }` 块中声明所有视觉状态。框架自动处理
+状态检测、属性插值和动画。
 
-### Before vs After
+### 前后对比
 
 ```kotlin
-// BEFORE — 15+ lines of imperative state wiring
+// 之前 — 15+ 行命令式状态连接
 val interactionSource = remember { MutableInteractionSource() }
 val isPressed by interactionSource.collectIsPressedAsState()
 val bgColor by animateColorAsState(
@@ -32,7 +31,7 @@ Box(
         .padding(16.dp)
 )
 
-// AFTER — Declarative. Done.
+// 之后 — 声明式。搞定。
 val style = Style {
     background(Color.Blue)
     shape(RoundedCornerShape(16.dp))
@@ -47,25 +46,25 @@ val style = Style {
 Box(Modifier.styleable(styleState = styleState, style = style))
 ```
 
-The mental shift: **stop telling Compose how to animate between states**. Declare what each
-state looks like — the framework interpolates.
+思维转变：**停止告诉 Compose 如何在状态之间动画**。声明每个状态
+长什么样 — 框架自动插值。
 
 ---
 
-## The Three Pieces
+## 三个组成部分
 
-### 1. `Style { }` — Declare Visual States
+### 1. `Style { }` — 声明视觉状态
 
-A `Style` is a `fun interface`. You use the builder DSL:
+`Style` 是一个 `fun interface`。使用构建器 DSL：
 
 ```kotlin
 val cardStyle = Style {
-    // Base properties (always applied)
+    // 基础属性（始终应用）
     background(Color(0xFFF5F5F5))
     shape(RoundedCornerShape(12.dp))
     contentPadding(16.dp)
 
-    // State overrides — only applied when state is active
+    // 状态覆盖 — 仅在状态激活时应用
     selected(Style {
         animate(Style {
             background(Color.Blue.copy(alpha = 0.15f))
@@ -76,30 +75,30 @@ val cardStyle = Style {
 
     disabled(Style {
         background(Color(0xFFE0E0E0))
-        contentColor(Color.Gray)  // no animate = instant snap
+        contentColor(Color.Gray)  // 无 animate = 立即 snap
     })
 }
 ```
 
-`animate(Style { })` wraps properties that should interpolate smoothly.
-Without `animate`, state changes snap immediately.
+`animate(Style { })` 包装应平滑插值的属性。
+没有 `animate`，状态变化立即 snap。
 
-### 2. `MutableStyleState` — Drive State
+### 2. `MutableStyleState` — 驱动状态
 
 ```kotlin
-// For toggle states (checked, selected, enabled) — set explicitly:
+// 用于切换状态（checked、selected、enabled）— 显式设置：
 val styleState = remember { MutableStyleState(MutableInteractionSource()) }
 styleState.isChecked = isChecked
 styleState.isSelected = isSelected
 styleState.isEnabled = isEnabled
 
-// For interaction states (pressed, hovered, focused) — share interactionSource:
+// 用于交互状态（pressed、hovered、focused）— 共享 interactionSource：
 val interactionSource = remember { MutableInteractionSource() }
 val styleState = remember { MutableStyleState(interactionSource) }
-// isPressed, isHovered, isFocused auto-track from shared interactionSource
+// isPressed、isHovered、isFocused 从共享的 interactionSource 自动跟踪
 ```
 
-### 3. `Modifier.styleable()` — Apply to Any Composable
+### 3. `Modifier.styleable()` — 应用于任何 Composable
 
 ```kotlin
 Box(
@@ -109,33 +108,33 @@ Box(
 )
 ```
 
-Background renders, shape clips, borders draw, transforms apply, text properties propagate
-to children via CompositionLocal. All animated.
+背景渲染、形状裁剪、边框绘制、变换应用、文本属性通过
+CompositionLocal 传播给子组件。全部带动画。
 
 ---
 
-## CRITICAL: Alpha06 Auto-Detection is Broken
+## 关键：Alpha06 自动检测已损坏
 
-**`styleable(style = myStyle)` without an explicit `styleState` does NOT detect interaction
-states from sibling modifiers.** This is the single biggest trap in alpha06.
+**`styleable(style = myStyle)` 不带显式 `styleState` 不会检测来自同级 modifier 的交互
+状态。** 这是 alpha06 中最大的陷阱。
 
-### What DOESN'T work:
+### 不起作用的情况：
 
 ```kotlin
-// Compiles. Renders base style. State changes are SILENT.
+// 能编译。渲染基础样式。状态变化静默失效。
 Box(
     Modifier
-        .styleable(style = myStyle)           // no styleState!
-        .toggleable(value = isChecked, ...)   // style never sees this
+        .styleable(style = myStyle)           // 没有 styleState！
+        .toggleable(value = isChecked, ...)   // 样式永远看不到这个
 )
 ```
 
-### What DOES work:
+### 起作用的情况：
 
-**Pattern A — Toggle states (checked, selected, enabled):**
+**模式 A — 切换状态（checked、selected、enabled）：**
 ```kotlin
 val styleState = remember { MutableStyleState(MutableInteractionSource()) }
-styleState.isChecked = isChecked  // YOU drive the state
+styleState.isChecked = isChecked  // 由你驱动状态
 
 Box(
     Modifier
@@ -144,7 +143,7 @@ Box(
 )
 ```
 
-**Pattern B — Interaction states (pressed, hovered, focused):**
+**模式 B — 交互状态（pressed、hovered、focused）：**
 ```kotlin
 val interactionSource = remember { MutableInteractionSource() }
 val styleState = remember { MutableStyleState(interactionSource) }
@@ -153,17 +152,17 @@ Box(
     Modifier
         .styleable(styleState = styleState, style = myStyle)
         .clickable(
-            interactionSource = interactionSource,  // same instance!
+            interactionSource = interactionSource,  // 同一个实例！
             indication = null,
         ) { }
 )
 ```
 
-**Pattern C — Both (toggle button with press feedback):**
+**模式 C — 两者都有（带按下反馈的切换按钮）：**
 ```kotlin
 val interactionSource = remember { MutableInteractionSource() }
 val styleState = remember { MutableStyleState(interactionSource) }
-styleState.isChecked = isChecked  // explicit for toggle
+styleState.isChecked = isChecked  // 显式设置切换状态
 
 Box(
     Modifier
@@ -175,65 +174,64 @@ Box(
 )
 ```
 
-**Rule: always pass `styleState` to `styleable()`.**
+**规则：始终将 `styleState` 传递给 `styleable()`。**
 
 ---
 
-## Text Property Propagation Gotcha
+## 文本属性传播陷阱
 
-`contentColor()`, `fontSize()`, `fontWeight()`, `letterSpacing()`, `textDecoration()`, and
-other text properties propagate to ALL child composables inside the styleable box via
-`CompositionLocal` (`LocalContentColor`, `LocalTextStyle`).
+`contentColor()`、`fontSize()`、`fontWeight()`、`letterSpacing()`、`textDecoration()` 和
+其他文本属性通过 `CompositionLocal`（`LocalContentColor`、`LocalTextStyle`）
+传播到 styleable box 内部的所有子 composable。
 
-### Problem:
+### 问题：
 ```kotlin
-// fontSize(28.sp) from the Style applies to BOTH texts!
+// Style 中的 fontSize(28.sp) 应用于两个文本！
 Box(Modifier.styleable(style = Style { fontSize(28.sp) })) {
     Text("Title")      // 28sp
-    Text("Subtitle")   // also 28sp — overlap!
+    Text("Subtitle")   // 也是 28sp — 重叠！
 }
 ```
 
-### Fix:
-Use a single `Text` inside styled boxes when style sets text properties. Move
-descriptions outside the styleable scope:
+### 修复：
+在 styled box 中只使用单个 `Text`。将描述移出 styleable 作用域：
 
 ```kotlin
-Text("Description goes here")  // outside the styled box
+Text("Description goes here")  // 在 styled box 外部
 Box(Modifier.styleable(style = gradientStyle)) {
-    Text("Title Only")  // only this gets styled
+    Text("Title Only")  // 只有这个获得样式
 }
 ```
 
 ---
 
-## Verified Properties (alpha06, tested on device)
+## 已验证属性（alpha06，设备上测试）
 
-| Property | Works? | Notes |
+| 属性 | 是否工作？ | 说明 |
 |----------|--------|-------|
-| `background(Color)` | Yes | Fills behind content |
-| `background(Brush)` | Yes | Gradient backgrounds |
-| `shape(Shape)` | Yes | Clips content + background |
-| `contentPadding(Dp)` | Yes | Inner padding |
-| `borderWidth(Dp) + borderColor(Color)` | Yes | Must set both |
-| `scale(Float)` | Yes | graphicsLayer transform |
-| `rotationZ(Float)` | Yes | graphicsLayer rotation |
-| `translationX/Y(Float)` | Yes | graphicsLayer offset |
-| `alpha(Float)` | Yes | Opacity |
-| `contentColor(Color)` | Yes | Propagates to child Text/Icon |
-| `contentBrush(Brush)` | Yes | Gradient text |
-| `fontSize(TextUnit)` | Yes | Propagates to children |
-| `fontWeight(FontWeight)` | Yes | Propagates to children |
-| `letterSpacing(TextUnit)` | Yes | Propagates to children |
-| `textDecoration(TextDecoration)` | Yes | Underline, strikethrough |
-| `animate(Style { })` | Yes | Smooth spring interpolation |
-| `dropShadow(Shadow)` | No | `Shadow` constructor is internal |
+| `background(Color)` | 是 | 在内容后方填充 |
+| `background(Brush)` | 是 | 渐变背景 |
+| `shape(Shape)` | 是 | 裁剪内容 + 背景 |
+| `contentPadding(Dp)` | 是 | 内边距 |
+| `borderWidth(Dp) + borderColor(Color)` | 是 | 必须同时设置两者 |
+| `scale(Float)` | 是 | graphicsLayer 变换 |
+| `rotationZ(Float)` | 是 | graphicsLayer 旋转 |
+| `translationX/Y(Float)` | 是 | graphicsLayer 偏移 |
+| `alpha(Float)` | 是 | 不透明度 |
+| `contentColor(Color)` | 是 | 传播给子 Text/Icon |
+| `contentBrush(Brush)` | 是 | 渐变文本 |
+| `fontSize(TextUnit)` | 是 | 传播给子组件 |
+| `fontWeight(FontWeight)` | 是 | 传播给子组件 |
+| `letterSpacing(TextUnit)` | 是 | 传播给子组件 |
+| `textDecoration(TextDecoration)` | 是 | 下划线、删除线 |
+| `animate(Style { })` | 是 | 平滑弹簧插值 |
+| `dropShadow(Shadow)` | 否 | `Shadow` 构造函数是 internal |
 
 ---
 
-## Style Composition
+## Style 组合
 
-Styles compose with `.then()` — later styles override earlier ones per-property:
+Styles 通过 `.then()` 组合 — 后面的 style 按属性覆盖前面的：
 
 ```kotlin
 val base = Style {
@@ -249,26 +247,26 @@ val elevated = Style {
 }
 
 val dark = Style {
-    background(Color(0xFF1E1E2E))  // overrides base's background
+    background(Color(0xFF1E1E2E))  // 覆盖 base 的 background
     contentColor(Color.White)
 }
 
-// Chained:
+// 链式：
 val composed = base.then(elevated).then(dark)
 
-// Factory (equivalent):
+// 工厂（等价）：
 val composed = Style(base, elevated, dark)
 ```
 
 ---
 
-## Building Reusable Components
+## 构建可复用组件
 
-The Styles API maps to Compose's component conventions. The `style` parameter becomes
-first-class, like `modifier`:
+Styles API 映射到 Compose 的组件约定。`style` 参数成为
+一等公民，类似于 `modifier`：
 
 ```kotlin
-// 1. Defaults object — theme-aware default style
+// 1. Defaults 对象 — 主题感知的默认样式
 @OptIn(ExperimentalFoundationStyleApi::class)
 object StyledChipDefaults {
     @Composable
@@ -287,7 +285,7 @@ object StyledChipDefaults {
     }
 }
 
-// 2. Component — style as parameter with default
+// 2. 组件 — style 作为带默认值的参数
 @Composable
 fun StyledChip(
     onClick: () -> Unit,
@@ -312,7 +310,7 @@ fun StyledChip(
     }
 }
 
-// 3. Usage — default, custom, or composed
+// 3. 使用 — 默认、自定义或组合
 StyledChip(onClick = {}) { Text("Default") }
 
 StyledChip(
@@ -335,10 +333,10 @@ StyledChip(
 
 ---
 
-## Theme Integration
+## 主题集成
 
-`StyleScope` extends `CompositionLocalAccessorScope`, so Style blocks can read
-`MaterialTheme` values at resolution time:
+`StyleScope` 扩展 `CompositionLocalAccessorScope`，因此 Style 块可以在解析时读取
+`MaterialTheme` 值：
 
 ```kotlin
 @Composable
@@ -360,111 +358,110 @@ fun ThemedButton() {
             })
         })
     }
-    // When theme changes (dark/light), style re-resolves automatically
+    // 主题变化（暗/亮）时，样式自动重新解析
 }
 ```
 
-Capture theme colors in a `@Composable` scope, use in the Style builder. Theme switches
-update all styled elements instantly.
+在 `@Composable` 作用域中捕获主题颜色，在 Style 构建器中使用。主题切换
+立即更新所有 styled 元素。
 
 ---
 
-## Architecture: How It Works
+## 架构：工作原理
 
-The API lives in 7 source files under `androidx.compose.foundation.style`:
+API 位于 `androidx.compose.foundation.style` 下的 7 个源文件中：
 
-| File | Purpose |
+| 文件 | 用途 |
 |------|---------|
-| `Style.kt` | `fun interface Style` + composition operators |
-| `StyleScope.kt` | ~50 property functions |
-| `StyleState.kt` | `StyleState` interface + `MutableStyleState` |
-| `StyleModifier.kt` | `Modifier.styleable()` implementation |
-| `StyleAnimations.kt` | `animate()` blocks |
-| `ResolvedStyle.kt` | Property resolution with bitset flagging |
-| `ExperimentalFoundationStyleApi.kt` | Opt-in annotation |
+| `Style.kt` | `fun interface Style` + 组合操作符 |
+| `StyleScope.kt` | ~50 个属性函数 |
+| `StyleState.kt` | `StyleState` 接口 + `MutableStyleState` |
+| `StyleModifier.kt` | `Modifier.styleable()` 实现 |
+| `StyleAnimations.kt` | `animate()` 块 |
+| `ResolvedStyle.kt` | 带位集标记的属性解析 |
+| `ExperimentalFoundationStyleApi.kt` | Opt-in 注解 |
 
-### Two-Node System
+### 双节点系统
 
-`Modifier.styleable()` inserts two modifier nodes:
+`Modifier.styleable()` 插入两个 modifier 节点：
 
-- **`StyleOuterNode`** — Layout (padding, sizing), drawing (background, border, shape),
-  transforms (scale, rotation, translation, alpha). Can invalidate at draw layer only when
-  transform/draw properties change — no recomposition.
+- **`StyleOuterNode`** — 布局（padding、sizing）、绘制（background、border、shape）、
+  变换（scale、rotation、translation、alpha）。当变换/绘制属性变化时，可以仅在绘制层使无效 — 无重组。
 
-- **`StyleInnerNode`** — Content padding and text style propagation. Sets `LocalContentColor`,
-  `LocalTextStyle`, etc. so child `Text` and `Icon` composables pick up styled colors/fonts.
+- **`StyleInnerNode`** — 内容 padding 和文本样式传播。设置 `LocalContentColor`、
+  `LocalTextStyle` 等，以便子 `Text` 和 `Icon` composable 获取 styled 颜色/字体。
 
-### Bitset-Based Property Tracking
+### 基于位集的属性跟踪
 
-`ResolvedStyle` uses bitset flags for ~50 properties. On state change:
+`ResolvedStyle` 使用位集标记处理 ~50 个属性。状态变化时：
 
-1. Only the delta between old and new resolved properties is computed
-2. Drawing-only changes (background, border, alpha) → **draw-only invalidation** (skips layout + composition)
-3. Layout changes (padding, sizing) → layout invalidation
-4. Text changes (contentColor, fontSize) → composition invalidation (updates CompositionLocals)
+1. 仅计算旧和新解析属性之间的增量
+2. 仅绘制变化（background、border、alpha） → **仅绘制无效化**（跳过布局 + 组合）
+3. 布局变化（padding、sizing） → 布局无效化
+4. 文本变化（contentColor、fontSize） → 组合无效化（更新 CompositionLocals）
 
-A press animation changing only `scale` and `background` never triggers recomposition.
+仅改变 `scale` 和 `background` 的按下动画永远不会触发重组。
 
 ---
 
-## All StyleScope Properties
+## 所有 StyleScope 属性
 
-### Layout
-- `contentPadding(Dp)`, `contentPadding(horizontal, vertical)`, `contentPadding(start, top, end, bottom)`
-- `externalPadding(Dp)` and same variants
-- `width(Dp)`, `height(Dp)`, `size(Dp)`, `size(width, height)`
+### 布局
+- `contentPadding(Dp)`、`contentPadding(horizontal, vertical)`、`contentPadding(start, top, end, bottom)`
+- `externalPadding(Dp)` 及相同变体
+- `width(Dp)`、`height(Dp)`、`size(Dp)`、`size(width, height)`
 - `minWidth/minHeight/maxWidth/maxHeight(Dp)`
-- `fillWidth()`, `fillHeight()`, `fillSize()`
+- `fillWidth()`、`fillHeight()`、`fillSize()`
 
-### Drawing
-- `background(Color)`, `background(Brush)`
-- `foreground(Color)`, `foreground(Brush)`
+### 绘制
+- `background(Color)`、`background(Brush)`
+- `foreground(Color)`、`foreground(Brush)`
 - `shape(Shape)`
-- `borderWidth(Dp)`, `borderColor(Color)`, `borderBrush(Brush)`
-- `border(width, color)`, `border(width, brush)`
+- `borderWidth(Dp)`、`borderColor(Color)`、`borderBrush(Brush)`
+- `border(width, color)`、`border(width, brush)`
 
-### Transforms
-- `scale(Float)`, `scaleX(Float)`, `scaleY(Float)`
-- `rotationX(Float)`, `rotationY(Float)`, `rotationZ(Float)`
-- `translationX(Float)`, `translationY(Float)`, `translation(x, y)`
-- `alpha(Float)`, `clip(Boolean)`, `zIndex(Float)`
+### 变换
+- `scale(Float)`、`scaleX(Float)`、`scaleY(Float)`
+- `rotationX(Float)`、`rotationY(Float)`、`rotationZ(Float)`
+- `translationX(Float)`、`translationY(Float)`、`translation(x, y)`
+- `alpha(Float)`、`clip(Boolean)`、`zIndex(Float)`
 - `transformOrigin(TransformOrigin)`
 
-### Text & Content
-- `contentColor(Color)`, `contentBrush(Brush)`
-- `fontSize(TextUnit)`, `fontWeight(FontWeight)`, `fontStyle(FontStyle)`
-- `letterSpacing(TextUnit)`, `lineHeight(TextUnit)`
-- `textDecoration(TextDecoration)`, `fontFamily(FontFamily)`
-- `textAlign(TextAlign)`, `textDirection(TextDirection)`
-- `textStyle(TextStyle)`, `textIndent(TextIndent)`
-- `baselineShift(BaselineShift)`, `lineBreak(LineBreak)`
-- `hyphens(Hyphens)`, `fontSynthesis(FontSynthesis)`
+### 文本与内容
+- `contentColor(Color)`、`contentBrush(Brush)`
+- `fontSize(TextUnit)`、`fontWeight(FontWeight)`、`fontStyle(FontStyle)`
+- `letterSpacing(TextUnit)`、`lineHeight(TextUnit)`
+- `textDecoration(TextDecoration)`、`fontFamily(FontFamily)`
+- `textAlign(TextAlign)`、`textDirection(TextDirection)`
+- `textStyle(TextStyle)`、`textIndent(TextIndent)`
+- `baselineShift(BaselineShift)`、`lineBreak(LineBreak)`
+- `hyphens(Hyphens)`、`fontSynthesis(FontSynthesis)`
 
-### Shadows (internal constructor in alpha06)
-- `dropShadow(Shadow)`, `innerShadow(Shadow)`
+### 阴影（alpha06 中构造函数为 internal）
+- `dropShadow(Shadow)`、`innerShadow(Shadow)`
 
-### State Functions
-- `pressed(Style)`, `hovered(Style)`, `focused(Style)`
-- `selected(Style)`, `checked(Style)`, `disabled(Style)`
+### 状态函数
+- `pressed(Style)`、`hovered(Style)`、`focused(Style)`
+- `selected(Style)`、`checked(Style)`、`disabled(Style)`
 
-### Animation
-- `animate(Style)` — default spring
-- `animate(spec: AnimationSpec<Float>, Style)` — custom spec
-- `animate(toSpec, fromSpec, Style)` — asymmetric enter/exit
+### 动画
+- `animate(Style)` — 默认弹簧
+- `animate(spec: AnimationSpec<Float>, Style)` — 自定义 spec
+- `animate(toSpec, fromSpec, Style)` — 非对称进入/退出
 
-### Composition
-- `Style.then(other: Style)` — chain (later overrides)
-- `Style(style1, style2)` — merge factory
-- `Style(vararg styles)` — merge multiple
+### 组合
+- `Style.then(other: Style)` — 链式（后面的覆盖）
+- `Style(style1, style2)` — 合并工厂
+- `Style(vararg styles)` — 合并多个
 
 ---
 
-## Common Pitfalls
+## 常见陷阱
 
-1. **Forgetting `styleState`** — the #1 bug. Style renders but never reacts to state.
-2. **Not sharing `interactionSource`** — pressed/hovered/focused won't track without it.
-3. **Multiple Text children in styled box** — all inherit fontSize/fontWeight/contentColor.
-4. **Using `toggleable()` / `selectable()`** — they create their own interactionSource internally. Use `.clickable()` and set state explicitly on `MutableStyleState`.
-5. **Missing `@OptIn(ExperimentalFoundationStyleApi::class)`** — required on all usages.
-6. **Trying to use `dropShadow()`** — `Shadow` constructor is internal in alpha06, won't compile.
-7. **No `indication = null` on clickable** — without it you get default ripple on top of your styled feedback.
+1. **忘记 `styleState`** — #1 bug。样式渲染但从不响应状态。
+2. **未共享 `interactionSource`** — 没有它 pressed/hovered/focused 不会跟踪。
+3. **styled box 中有多个 Text 子组件** — 全部继承 fontSize/fontWeight/contentColor。
+4. **使用 `toggleable()` / `selectable()`** — 它们在内部创建自己的 interactionSource。使用 `.clickable()` 并显式在 `MutableStyleState` 上设置状态。
+5. **缺少 `@OptIn(ExperimentalFoundationStyleApi::class)`** — 所有用法都需要。
+6. **尝试使用 `dropShadow()`** — `Shadow` 构造函数在 alpha06 中是 internal，无法编译。
+7. **clickable 上没有 `indication = null`** — 没有它你会在 styled 反馈之上获得默认涟漪。

@@ -1,35 +1,35 @@
-# Jetpack Compose Side Effects Reference
+# Jetpack Compose 副作用参考
 
-Compose is declarative, but apps must interact with the imperative world: launch coroutines, register listeners, manage resources. Side effects are the bridge. Understanding when and how to use them is essential for correctness.
+Compose 是声明式的，但应用必须与命令式世界交互：启动协程、注册监听器、管理资源。副作用是桥梁。理解何时以及如何使用它们对正确性至关重要。
 
-## The Effect Mental Model
+## 副作用心智模型
 
-Compose recomposes when state changes. Effects are blocks of code that run outside the normal composition and recomposition cycle:
+Compose 在状态变化时重组。副作用是在正常组合和重组周期之外运行的代码块：
 
-- **Composition**: Calculate the UI tree
-- **Side effects**: Run imperative code (coroutines, callbacks, lifecycle events)
-- **Layout**: Measure and position elements
-- **Drawing**: Render to screen
+- **组合**：计算 UI 树
+- **副作用**：运行命令式代码（协程、回调、生命周期事件）
+- **布局**：测量和定位元素
+- **绘制**：渲染到屏幕
 
-Effects run *after* composition succeeds. If composition fails, the effect doesn't run.
+副作用在组合成功*之后*运行。如果组合失败，副作用不会运行。
 
 ```kotlin
 @Composable
 fun MyScreen() {
-    // This runs during composition
+    // 这在组合期间运行
     val state = remember { mutableStateOf("initial") }
 
-    // This runs AFTER composition, and only when 'state.value' changes
+    // 这在组合之后运行，且仅在 'state.value' 变化时运行
     LaunchedEffect(state.value) {
         println("State changed to: ${state.value}")
     }
 
-    // This runs after every composition (use sparingly)
+    // 这在每次组合之后运行（谨慎使用）
     SideEffect {
         println("Recomposition happened")
     }
 
-    // This runs when composable leaves composition
+    // 这在 composable 离开组合时运行
     DisposableEffect(Unit) {
         onDispose {
             println("Composable is leaving composition")
@@ -42,16 +42,16 @@ fun MyScreen() {
 }
 ```
 
-## SideEffect — After Every Successful Composition
+## SideEffect — 每次成功组合之后
 
-`SideEffect` runs after *every* successful composition. It has no cleanup, no keys, and always executes.
+`SideEffect` 在*每次*成功组合之后运行。它无清理、无 key，始终执行。
 
 ```kotlin
 @Composable
 fun MyComposable() {
     var clickCount by remember { mutableStateOf(0) }
 
-    // Runs after every recomposition
+    // 每次重组后运行
     SideEffect {
         println("Recomposed! Click count: $clickCount")
     }
@@ -62,11 +62,11 @@ fun MyComposable() {
 }
 ```
 
-### Use Cases
+### 使用场景
 
-- Synchronizing Compose state with external systems (e.g., Analytics logging)
-- Updating non-Compose UI elements
-- One-way synchronization where cleanup isn't needed
+- 将 Compose 状态与外部系统同步（例如 Analytics 日志记录）
+- 更新非 Compose UI 元素
+- 不需要清理的单向同步
 
 ```kotlin
 @Composable
@@ -77,71 +77,71 @@ fun TrackScreenView(screenName: String) {
 }
 ```
 
-**Do:** Use for simple, stateless synchronization.
-**Don't:** Use for resource allocation (use `DisposableEffect` instead).
+**应做：** 用于简单的、无状态的同步。
+**不应做：** 用于资源分配（改用 `DisposableEffect`）。
 
-Source: `compose/runtime/runtime/src/commonMain/kotlin/androidx/compose/runtime/Effects.kt`
+来源：`compose/runtime/runtime/src/commonMain/kotlin/androidx/compose/runtime/Effects.kt`
 
-## LaunchedEffect(key) — Coroutines Scoped to Composition
+## LaunchedEffect(key) — 组合作用域内的协程
 
-`LaunchedEffect` launches a coroutine in a scope tied to the composable's lifecycle. The coroutine is cancelled if the key changes or the composable leaves composition.
+`LaunchedEffect` 在与 composable 生命周期绑定的作用域中启动协程。如果 key 变化或 composable 离开组合，协程会被取消。
 
 ```kotlin
 @Composable
 fun DataLoader(userId: String) {
     var data by remember { mutableStateOf<String?>(null) }
 
-    // Coroutine runs when userId changes or composable enters composition
+    // 当 userId 变化或 composable 进入组合时运行协程
     LaunchedEffect(userId) {
-        data = loadData(userId)  // suspend function
+        data = loadData(userId)  // 挂起函数
     }
 
     Text(data ?: "Loading...")
 }
 ```
 
-### Key Selection
+### Key 选择
 
 ```kotlin
-// Key = Unit: runs once when composable enters composition, never cancels/restarts
+// Key = Unit：在 composable 进入组合时运行一次，永不取消/重启
 LaunchedEffect(Unit) {
     setupOnce()
 }
 
-// Key = specific value: reruns whenever the value changes
+// Key = 特定值：值变化时重新运行
 var userId by remember { mutableStateOf("user1") }
 LaunchedEffect(userId) {
-    loadUserData(userId)  // reruns when userId changes
+    loadUserData(userId)  // userId 变化时重新运行
 }
 
-// Multiple keys: reruns if ANY key changes
+// 多个 key：任一 key 变化时重新运行
 LaunchedEffect(userId, postId) {
     loadUserAndPost(userId, postId)
 }
 
-// No key parameter (not recommended): equivalent to Unit
+// 无 key 参数（不推荐）：等价于 Unit
 LaunchedEffect {
     setupOnce()
 }
 ```
 
-### Common Mistake: Wrong Key Selection
+### 常见错误：错误的 Key 选择
 
 ```kotlin
-// Don't: Key changes every recomposition (creates infinite loop)
+// 不要：Key 每次重组都变化（创建无限循环）
 @Composable
 fun BadKeySelection() {
     var count by remember { mutableStateOf(0) }
-    val randomKey = Random.nextInt()  // Changes every recomposition!
+    val randomKey = Random.nextInt()  // 每次重组都变化！
 
     LaunchedEffect(randomKey) {
-        count++  // This launches infinitely
+        count++  // 这会无限启动
     }
 
     Text("Count: $count")
 }
 
-// Do: Use stable keys that represent the data you depend on
+// 要：使用代表你所依赖数据的稳定 key
 @Composable
 fun GoodKeySelection(userId: String) {
     var userData by remember { mutableStateOf<User?>(null) }
@@ -154,7 +154,7 @@ fun GoodKeySelection(userId: String) {
 }
 ```
 
-### Cancellation Behavior
+### 取消行为
 
 ```kotlin
 @Composable
@@ -163,22 +163,22 @@ fun ResourceUser(shouldLoad: Boolean) {
         if (shouldLoad) {
             val resource = acquireResource()
             try {
-                delay(5000)  // Long operation
+                delay(5000)  // 长时间操作
                 processResource(resource)
             } finally {
-                resource.close()  // Runs even if cancelled
+                resource.close()  // 即使取消也会运行
             }
         }
     }
 }
 
-// If shouldLoad becomes false, the LaunchedEffect coroutine is cancelled.
-// The finally block ensures cleanup.
+// 如果 shouldLoad 变为 false，LaunchedEffect 协程被取消。
+// finally 块确保清理。
 ```
 
-## DisposableEffect(key) — For Cleanup
+## DisposableEffect(key) — 用于清理
 
-`DisposableEffect` runs after composition and requires a cleanup function (onDispose). Use for listeners, registrations, and resources.
+`DisposableEffect` 在组合之后运行，并要求提供清理函数（onDispose）。用于监听器、注册和资源。
 
 ```kotlin
 @Composable
@@ -187,7 +187,7 @@ fun LocationListener(context: Context) {
         val listener = LocationListener { location ->
             println("Location: $location")
         }
-        // Register listener
+        // 注册监听器
         locationManager.requestLocationUpdates(
             LocationManager.GPS_PROVIDER,
             0,
@@ -195,7 +195,7 @@ fun LocationListener(context: Context) {
             listener
         )
 
-        // Cleanup: unregister listener
+        // 清理：注销监听器
         onDispose {
             locationManager.removeUpdates(listener)
         }
@@ -203,7 +203,7 @@ fun LocationListener(context: Context) {
 }
 ```
 
-### Common Pattern: Lifecycle Events
+### 常见模式：生命周期事件
 
 ```kotlin
 @Composable
@@ -227,14 +227,14 @@ fun ScreenWithLifecycle() {
 }
 ```
 
-**Do:** Use `DisposableEffect` for every resource you allocate.
-**Don't:** Forget the `onDispose` block (resource leaks result).
+**应做：** 为每个分配的资源使用 `DisposableEffect`。
+**不应做：** 忘记 `onDispose` 块（会导致资源泄漏）。
 
-Source: `compose/runtime/runtime/src/commonMain/kotlin/androidx/compose/runtime/Effects.kt`
+来源：`compose/runtime/runtime/src/commonMain/kotlin/androidx/compose/runtime/Effects.kt`
 
-## rememberCoroutineScope — Launching from Event Handlers
+## rememberCoroutineScope — 从事件处理器启动
 
-`rememberCoroutineScope` provides a coroutine scope tied to the composable. Use it to launch coroutines from event handlers (clicks, gestures).
+`rememberCoroutineScope` 提供一个与 composable 绑定的协程作用域。用于从事件处理器（点击、手势）中启动协程。
 
 ```kotlin
 @Composable
@@ -244,7 +244,7 @@ fun ButtonWithAsync() {
 
     Button(
         onClick = {
-            // Launch coroutine from click handler
+            // 从点击处理器中启动协程
             scope.launch {
                 result = fetchData()
             }
@@ -257,17 +257,17 @@ fun ButtonWithAsync() {
 }
 ```
 
-### Do vs Don't
+### 应做 vs 不应做
 
 ```kotlin
-// Don't: regular function scope doesn't work
+// 不要：普通函数作用域无效
 @Composable
 fun BadAsync() {
     var result by remember { mutableStateOf("") }
 
     Button(
         onClick = {
-            runBlocking {  // Blocks UI thread!
+            runBlocking {  // 阻塞 UI 线程！
                 result = fetchData()
             }
         }
@@ -276,7 +276,7 @@ fun BadAsync() {
     }
 }
 
-// Do: use rememberCoroutineScope
+// 要：使用 rememberCoroutineScope
 @Composable
 fun GoodAsync() {
     val scope = rememberCoroutineScope()
@@ -294,21 +294,21 @@ fun GoodAsync() {
 }
 ```
 
-## rememberUpdatedState — Capturing Latest Values
+## rememberUpdatedState — 捕获最新值
 
-Long-running effects need the latest value of frequently-changing state, but you don't want to restart the effect on every change.
+长时间运行的副作用需要频繁变化状态的最新值，但你不想在每次变化时重启副作用。
 
 ```kotlin
-// Don't: effect restarts when callback changes
+// 不要：callback 变化时效果重启
 @Composable
 fun BadCallback(onSuccess: (String) -> Unit) {
-    LaunchedEffect(onSuccess) {  // Restarts whenever onSuccess changes!
+    LaunchedEffect(onSuccess) {  // callback 变化时重启！
         val result = expensiveOperation()
         onSuccess(result)
     }
 }
 
-// Do: use rememberUpdatedState to capture latest without restarting
+// 要：使用 rememberUpdatedState 在不重启的情况下捕获最新值
 @Composable
 fun GoodCallback(onSuccess: (String) -> Unit) {
     val updatedOnSuccess = rememberUpdatedState(onSuccess)
@@ -320,7 +320,7 @@ fun GoodCallback(onSuccess: (String) -> Unit) {
 }
 ```
 
-### Another Example: Animations
+### 另一个示例：动画
 
 ```kotlin
 @Composable
@@ -337,28 +337,28 @@ fun AnimateWithCallback(
                 progress += 0.1f
                 delay(16)
             }
-            updatedCallback.value()  // Call latest callback without restarting
+            updatedCallback.value()  // 不重启就调用最新 callback
         }
     }
 }
 ```
 
-## produceState — Converting Non-Compose State to Compose State
+## produceState — 将非 Compose 状态转换为 Compose 状态
 
-`produceState` converts imperative state sources (callbacks, flows, coroutines) into Compose state.
+`produceState` 将命令式状态源（回调、flow、协程）转换为 Compose 状态。
 
 ```kotlin
 @Composable
 fun UserData(userId: String): State<User?> = produceState<User?>(initialValue = null) {
     value = fetchUser(userId)
 
-    // Optional: for lifecycle cleanup
+    // 可选：用于生命周期清理
     snapshotFlow { userId }.collect { newUserId ->
         value = fetchUser(newUserId)
     }
 }
 
-// Usage
+// 使用
 @Composable
 fun UserScreen(userId: String) {
     val user by UserData(userId)
@@ -366,7 +366,7 @@ fun UserScreen(userId: String) {
 }
 ```
 
-### Integration with Flows
+### 与 Flow 集成
 
 ```kotlin
 @Composable
@@ -374,7 +374,7 @@ fun <T> Flow<T>.collectAsState(initial: T): State<T> = produceState(initial) {
     collect { value = it }
 }
 
-// Usage
+// 使用
 @Composable
 fun ObserveFlow(dataFlow: Flow<String>) {
     val data by dataFlow.collectAsState(initial = "")
@@ -382,9 +382,9 @@ fun ObserveFlow(dataFlow: Flow<String>) {
 }
 ```
 
-## Effect Ordering and Lifecycle
+## 副作用顺序和生命周期
 
-Effects execute in declaration order after composition:
+副作用在组合之后按声明顺序执行：
 
 ```kotlin
 @Composable
@@ -412,7 +412,7 @@ fun EffectOrder() {
     println("End of composition body")
 }
 
-// Output order (approximate):
+// 输出顺序（大致）：
 // 1. Composition
 // End of composition body
 // 2. Disposable effect setup (after composition)
@@ -423,50 +423,50 @@ fun EffectOrder() {
 // 6. Cleanup when leaving composition
 ```
 
-## Common Mistakes
+## 常见错误
 
-### Using LaunchedEffect(Unit) When Key Should Change
+### 当 Key 应该变化时使用 LaunchedEffect(Unit)
 
 ```kotlin
-// Don't: effect runs once, never updates
+// 不要：效果只运行一次，永不更新
 @Composable
 fun BadSearch(query: String) {
     var results by remember { mutableStateOf<List<String>>(emptyList()) }
 
     LaunchedEffect(Unit) {
-        results = search(query)  // Only runs once!
+        results = search(query)  // 只运行一次！
     }
 
     Text("Results: ${results.size}")
 }
 
-// Do: use query as key
+// 要：使用 query 作为 key
 @Composable
 fun GoodSearch(query: String) {
     var results by remember { mutableStateOf<List<String>>(emptyList()) }
 
     LaunchedEffect(query) {
-        results = search(query)  // Reruns when query changes
+        results = search(query)  // query 变化时重新运行
     }
 
     Text("Results: ${results.size}")
 }
 ```
 
-### Forgetting Cleanup in DisposableEffect
+### 在 DisposableEffect 中忘记清理
 
 ```kotlin
-// Don't: memory leak
+// 不要：内存泄漏
 @Composable
 fun BadListener(context: Context) {
     DisposableEffect(Unit) {
         val listener = MyListener()
         context.registerListener(listener)
-        // Missing: onDispose { context.unregisterListener(listener) }
+        // 缺少：onDispose { context.unregisterListener(listener) }
     }
 }
 
-// Do: always clean up
+// 要：始终清理
 @Composable
 fun GoodListener(context: Context) {
     DisposableEffect(Unit) {
@@ -480,23 +480,23 @@ fun GoodListener(context: Context) {
 }
 ```
 
-### Capturing Mutable State Directly
+### 直接捕获可变状态
 
 ```kotlin
-// Don't: stale state in effect
+// 不要：效果中的状态过期
 @Composable
 fun BadCapture() {
     var count by remember { mutableStateOf(0) }
 
     LaunchedEffect(Unit) {
         delay(1000)
-        println(count)  // May be stale!
+        println(count)  // 可能已过期！
     }
 
     Button(onClick = { count++ }) { Text("Click") }
 }
 
-// Do: use rememberUpdatedState or include in key
+// 要：使用 rememberUpdatedState 或将其包含在 key 中
 @Composable
 fun GoodCapture() {
     var count by remember { mutableStateOf(0) }
@@ -504,7 +504,7 @@ fun GoodCapture() {
     val updatedCount = rememberUpdatedState(count)
     LaunchedEffect(Unit) {
         delay(1000)
-        println(updatedCount.value)  // Always current
+        println(updatedCount.value)  // 始终是最新值
     }
 
     Button(onClick = { count++ }) { Text("Click") }
@@ -513,4 +513,4 @@ fun GoodCapture() {
 
 ---
 
-**Summary:** Effects bridge declarative Compose with imperative systems. Master key selection in `LaunchedEffect`, always cleanup in `DisposableEffect`, use `rememberUpdatedState` for long-running effects that need fresh values, and prefer effect-based patterns over manual lifecycle management.
+**总结：** 副作用桥接声明式 Compose 与命令式系统。掌握 `LaunchedEffect` 中的 key 选择，始终在 `DisposableEffect` 中清理，对长时间运行的副作用使用 `rememberUpdatedState` 获取最新值，并优先选择基于 effect 的模式而非手动生命周期管理。

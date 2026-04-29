@@ -1,17 +1,17 @@
-# Navigation in Jetpack Compose
+# Jetpack Compose 导航
 
-Reference: `androidx/navigation/navigation-compose/src/commonMain/kotlin/androidx/navigation/compose/`
+参考：`androidx/navigation/navigation-compose/src/commonMain/kotlin/androidx/navigation/compose/`
 
-## Setup
+## 设置
 
-### Basic NavHost and NavController
+### 基本 NavHost 和 NavController
 
 ```kotlin
 val navController = rememberNavController()
 
 NavHost(
     navController = navController,
-    startDestination = "home" // Use Route::class with type-safe navigation
+    startDestination = "home" // 使用 Route::class 进行类型安全导航
 ) {
     composable<Home> {
         HomeScreen(onNavigate = { navController.navigate(Details()) })
@@ -19,11 +19,11 @@ NavHost(
 }
 ```
 
-`rememberNavController()` creates a `NavController` that survives recomposition. Always use it in `NavHost`—never create `NavController` in a ViewModel.
+`rememberNavController()` 创建一个在重组中存活的 `NavController`。始终在 `NavHost` 中使用它 — 绝不在 ViewModel 中创建 `NavController`。
 
-## Type-Safe Navigation (Navigation 2.8+)
+## 类型安全导航（Navigation 2.8+）
 
-Use `@Serializable` route classes instead of string routes. This is the recommended pattern.
+使用 `@Serializable` 路由类替代字符串路由。这是推荐的模式。
 
 ```kotlin
 @Serializable
@@ -44,7 +44,7 @@ NavHost(navController, startDestination = Home()) {
 }
 ```
 
-Serialize complex types using `@Serializable` on nested data classes:
+使用 `@Serializable` 在嵌套数据类上序列化复杂类型：
 
 ```kotlin
 @Serializable
@@ -53,13 +53,13 @@ data class User(val id: Int, val name: String)
 @Serializable
 data class UserProfile(val user: User)
 
-// Navigate:
+// 导航：
 navController.navigate(UserProfile(user = User(1, "Alice")))
 ```
 
-## Declaring Destinations
+## 声明目的地
 
-### composable — Screen destinations
+### composable — 屏幕目的地
 
 ```kotlin
 composable<Route> { backStackEntry ->
@@ -67,7 +67,7 @@ composable<Route> { backStackEntry ->
 }
 ```
 
-### dialog — Dialog destinations
+### dialog — 对话框目的地
 
 ```kotlin
 dialog<Route> { backStackEntry ->
@@ -75,7 +75,7 @@ dialog<Route> { backStackEntry ->
 }
 ```
 
-### navigation — Nested graphs (feature modules)
+### navigation — 嵌套图（特性模块）
 
 ```kotlin
 navigation<RootRoute>(startDestination = Home()) {
@@ -84,35 +84,35 @@ navigation<RootRoute>(startDestination = Home()) {
 }
 ```
 
-## Navigating
+## 导航
 
-### Navigate to a destination
+### 导航到目的地
 
 ```kotlin
-// Type-safe
+// 类型安全
 navController.navigate(Details(itemId = 42))
 
-// Avoid: string-based navigation
-navController.navigate("details/42") // Anti-pattern
+// 避免：基于字符串的导航
+navController.navigate("details/42") // 反模式
 ```
 
-### Pop back stack
+### 弹出返回栈
 
 ```kotlin
 navController.popBackStack()
 
-// Pop with return value (save state before popping)
+// 带返回值弹出（弹出前保存状态）
 navController.previousBackStackEntry?.savedStateHandle?.set("key", value)
 navController.popBackStack()
 
-// In destination, retrieve:
+// 在目的地中检索：
 val result = navController.currentBackStackEntry?.savedStateHandle?.get<T>("key")
 ```
 
-### popUpTo — Clear back stack
+### popUpTo — 清空返回栈
 
 ```kotlin
-// Navigate to Details, clearing Home from stack
+// 导航到 Details，从栈中清除 Home
 navController.navigate(
     Details(itemId = 42),
     navOptions = navOptions {
@@ -120,7 +120,7 @@ navController.navigate(
     }
 )
 
-// inclusive = true: Remove the target route too
+// inclusive = true：同时移除目标路由
 navController.navigate(
     Login(),
     navOptions = navOptions {
@@ -128,7 +128,7 @@ navController.navigate(
     }
 )
 
-// launchSingleTop: Reuse existing instance if already on stack
+// launchSingleTop：如果已在栈中则复用现有实例
 navController.navigate(
     Details(itemId = 42),
     navOptions = navOptions {
@@ -137,11 +137,11 @@ navController.navigate(
 )
 ```
 
-## Arguments and Back Stack Data
+## 参数和返回栈数据
 
-Compose Navigation handles serialization automatically with `@Serializable` routes.
+Compose Navigation 使用 `@Serializable` 路由自动处理序列化。
 
-### Passing complex data
+### 传递复杂数据
 
 ```kotlin
 @Serializable
@@ -153,20 +153,20 @@ data class Metadata(val timestamp: Long, val priority: Int)
 navController.navigate(Message(1, "Hello", Metadata(System.currentTimeMillis(), 1)))
 ```
 
-### Result passing via SavedStateHandle
+### 通过 SavedStateHandle 传递结果
 
 ```kotlin
-// Send result back
+// 发送结果回传
 navController.previousBackStackEntry?.savedStateHandle?.set("result", "success")
 navController.popBackStack()
 
-// Receive in previous screen
+// 在前一屏幕接收
 val result = navController.currentBackStackEntry?.savedStateHandle?.get<String>("result")
 ```
 
-## Nested Navigation Graphs
+## 嵌套导航图
 
-Organize related destinations into feature graphs.
+将相关目的地组织到特性图中。
 
 ```kotlin
 navigation<FeatureRoot>(startDestination = FeatureHome()) {
@@ -175,11 +175,11 @@ navigation<FeatureRoot>(startDestination = FeatureHome()) {
 }
 ```
 
-Benefits: scoped ViewModels, separate back stack behavior, feature isolation.
+好处：作用域 ViewModel、独立的返回栈行为、特性隔离。
 
-## Deep Links
+## 深层链接
 
-Declare deep links to open your app from URLs or notifications.
+声明深层链接以从 URL 或通知打开应用。
 
 ```kotlin
 composable<Details>(
@@ -193,11 +193,11 @@ composable<Details>(
     DetailsScreen(itemId = args.itemId)
 }
 
-// Navigate via deep link
+// 通过深层链接导航
 navController.navigate("https://example.com/details/42")
 ```
 
-Handle in `AndroidManifest.xml`:
+在 `AndroidManifest.xml` 中处理：
 
 ```xml
 <activity android:name=".MainActivity">
@@ -210,11 +210,11 @@ Handle in `AndroidManifest.xml`:
 </activity>
 ```
 
-## Back Stack Management
+## 返回栈管理
 
 ### saveState / restoreState
 
-Preserve screen state during navigation:
+在导航期间保留屏幕状态：
 
 ```kotlin
 navController.navigate(
@@ -226,20 +226,20 @@ navController.navigate(
 )
 ```
 
-### Check current route
+### 检查当前路由
 
 ```kotlin
 val currentRoute = navController.currentBackStackEntry?.destination?.route
 ```
 
-### Observe back stack
+### 观察返回栈
 
 ```kotlin
 val backStackEntry by navController.currentBackStackEntryAsState()
 val route = backStackEntry?.destination?.route
 ```
 
-## Bottom Navigation Integration
+## 底部导航集成
 
 ```kotlin
 var selectedItem by remember { mutableStateOf("home") }
@@ -282,7 +282,7 @@ Scaffold(
 }
 ```
 
-## Shared Element Transitions
+## 共享元素过渡
 
 ```kotlin
 NavHost(navController, startDestination = List()) {
@@ -303,7 +303,7 @@ NavHost(navController, startDestination = List()) {
 }
 ```
 
-Use in screens:
+在屏幕中使用：
 
 ```kotlin
 Image(
@@ -316,9 +316,9 @@ Image(
 )
 ```
 
-## ViewModel Scoping with Navigation
+## 使用导航进行 ViewModel 作用域
 
-Use `hiltViewModel()` to scope ViewModels to a back stack entry.
+使用 `hiltViewModel()` 将 ViewModel 作用域到返回栈条目。
 
 ```kotlin
 composable<Details> { backStackEntry ->
@@ -327,11 +327,11 @@ composable<Details> { backStackEntry ->
 }
 ```
 
-ViewModels scoped this way survive configuration changes but are cleared when the back stack entry is removed.
+以此方式作用域的 ViewModel 在配置变化中存活，但在返回栈条目被移除时清除。
 
-## Testing Navigation
+## 测试导航
 
-Use `TestNavHostController` to test navigation behavior.
+使用 `TestNavHostController` 测试导航行为。
 
 ```kotlin
 @get:Rule
@@ -354,39 +354,39 @@ fun navigateToDetails() {
 }
 ```
 
-## Anti-Patterns
+## 反模式
 
-### Don't: Use string-based routes
+### 不要：使用基于字符串的路由
 ```kotlin
-// ❌ Anti-pattern
+// ❌ 反模式
 navController.navigate("details/42")
 
-// ✅ Correct
+// ✅ 正确
 navController.navigate(Details(itemId = 42))
 ```
 
-### Don't: Create NavController in ViewModel
+### 不要：在 ViewModel 中创建 NavController
 ```kotlin
-// ❌ Anti-pattern
+// ❌ 反模式
 class MyViewModel : ViewModel() {
-    val navController = NavController(context) // Wrong!
+    val navController = NavController(context) // 错误！
 }
 
-// ✅ Correct
-// NavController lives in NavHost, injected into composables
+// ✅ 正确
+// NavController 存在于 NavHost 中，注入到 composable 中
 ```
 
-### Don't: Navigate in composition
+### 不要：在组合中导航
 ```kotlin
-// ❌ Anti-pattern
+// ❌ 反模式
 @Composable
 fun MyScreen() {
     if (condition) {
-        navController.navigate(Details()) // Navigates on every recomposition!
+        navController.navigate(Details()) // 每次重组都导航！
     }
 }
 
-// ✅ Correct
+// ✅ 正确
 @Composable
 fun MyScreen() {
     LaunchedEffect(condition) {
@@ -397,15 +397,15 @@ fun MyScreen() {
 }
 ```
 
-### Don't: Mix navigation approaches
+### 不要：混合导航方式
 ```kotlin
-// ❌ Anti-pattern
+// ❌ 反模式
 navigation<Feature>(startDestination = "home") {
-    composable("home") { } // String-based
-    composable<Details> { } // Type-safe mixed with strings
+    composable("home") { } // 基于字符串
+    composable<Details> { } // 类型安全与字符串混合
 }
 
-// ✅ Correct
+// ✅ 正确
 @Serializable
 object FeatureHome
 

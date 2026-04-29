@@ -1,33 +1,33 @@
-# Jetpack Compose State Management Reference
+# Jetpack Compose 状态管理参考
 
-## State Fundamentals
+## 状态基础
 
-State in Compose is observable data that triggers recomposition when changed.
+Compose 中的状态是可观察数据，变化时会触发重组。
 
-### Creating State
+### 创建状态
 
-Use type-specific state holders for efficiency:
+使用类型特定的状态持有者以提升效率：
 
 ```kotlin
-// General-purpose state (Any type)
+// 通用状态（任意类型）
 val name = mutableStateOf("Alice")
 
-// Primitive specializations (avoid boxing)
+// 原始类型特化（避免装箱）
 val count = mutableIntStateOf(0)
 val progress = mutableFloatStateOf(0.5f)
-val enabled = mutableStateOf(true)  // Boolean has no specialization
+val enabled = mutableStateOf(true)  // Boolean 无特化版
 ```
 
-**Pitfall:** Using `mutableStateOf<Int>()` instead of `mutableIntStateOf()` causes unnecessary boxing on every read/write. Primitive specializations are located in `androidx.compose.runtime` (source: `State.kt`).
+**陷阱：** 使用 `mutableStateOf<Int>()` 而非 `mutableIntStateOf()` 会在每次读/写时产生不必要的装箱。原始类型特化函数位于 `androidx.compose.runtime`（来源：`State.kt`）。
 
-## remember vs rememberSaveable
+## remember 与 rememberSaveable
 
-Both associate state with a composition key, but differ in persistence scope.
+两者都将状态与组合 key 关联，但持久化范围不同。
 
 ### remember
-- Lives for the composition's lifetime
-- Lost on process death, configuration changes, back navigation
-- Best for UI state: selection, expanded/collapsed, scroll position
+- 存活于组合的生命周期内
+- 进程死亡、配置变化、返回导航时丢失
+- 最适合 UI 状态：选中、展开/折叠、滚动位置
 
 ```kotlin
 @Composable
@@ -40,19 +40,19 @@ fun Counter() {
 ```
 
 ### rememberSaveable
-- Survives process death and configuration changes
-- Uses `Bundle`-compatible types by default (String, Int, Boolean, etc.)
-- For custom types, provide a `Saver` or use `@Parcelize`
-- Best for data that represents user input or navigation state
+- 在进程死亡和配置变化中存活
+- 默认使用 `Bundle` 兼容类型（String、Int、Boolean 等）
+- 对于自定义类型，提供 `Saver` 或使用 `@Parcelize`
+- 最适合代表用户输入或导航状态的数据
 
 ```kotlin
 @Composable
 fun SearchScreen() {
     var query by rememberSaveable { mutableStateOf("") }
-    // survives configuration change
+    // 在配置变化中存活
 }
 
-// Custom type requires explicit Saver
+// 自定义类型需要显式 Saver
 data class User(val id: Int, val name: String)
 val userSaver = Saver<User, String>(
     save = { "${it.id}:${it.name}" },
@@ -61,23 +61,23 @@ val userSaver = Saver<User, String>(
 var user by rememberSaveable(stateSaver = userSaver) { mutableStateOf(User(1, "Alice")) }
 ```
 
-**Pitfall:** Assuming `rememberSaveable` works with all types. Custom classes need explicit `Saver` or `@Parcelize`. See `SaveableStateRegistry` in `androidx.compose.runtime.saveable`.
+**陷阱：** 假设 `rememberSaveable` 适用于所有类型。自定义类需要显式 `Saver` 或 `@Parcelize`。参见 `SaveableStateRegistry` 在 `androidx.compose.runtime.saveable`。
 
-## State Hoisting
+## 状态提升
 
-Move state up to a parent composable to enable reusability and testing.
+将状态移到父 composable 中以实现可复用性和可测试性。
 
-### Stateful vs Stateless Pattern
+### 有状态 vs 无状态模式
 
 ```kotlin
-// ❌ Stateful version (tightly coupled)
+// ❌ 有状态版本（紧耦合）
 @Composable
 fun Counter() {
     var count by remember { mutableIntStateOf(0) }
     Button(onClick = { count++ }) { Text(count.toString()) }
 }
 
-// ✅ Stateless version (reusable, testable)
+// ✅ 无状态版本（可复用、可测试）
 @Composable
 fun Counter(
     count: Int,
@@ -86,7 +86,7 @@ fun Counter(
     Button(onClick = { onCountChange(count + 1) }) { Text(count.toString()) }
 }
 
-// ✅ Wrapper composable (provides state, uses stateless child)
+// ✅ 包裹 composable（提供状态，使用无状态子组件）
 @Composable
 fun StatefulCounter() {
     var count by remember { mutableIntStateOf(0) }
@@ -94,24 +94,24 @@ fun StatefulCounter() {
 }
 ```
 
-**Rule:** Push state as high as needed, but no higher. If only one child needs state, keep it there. If multiple children or parents need it, hoist up.
+**规则：** 按需将状态推到最高层，但不要更高。如果只有一个子组件需要状态，就放在那里。如果多个子组件或父组件需要，就向上提升。
 
 ## derivedStateOf
 
-Computes a value from existing state, recomputing only when dependencies change.
+从现有状态计算值，仅在依赖变化时重新计算。
 
 ```kotlin
-// ❌ Wrong: recomputes on every recomposition
+// ❌ 错误：每次重组都重新计算
 val isEven = count % 2 == 0
 
-// ✅ Correct: recomputes only when count changes
+// ✅ 正确：仅在 count 变化时重新计算
 val isEven = derivedStateOf { count % 2 == 0 }
 ```
 
-**When to use:**
-- Expensive computations from state (e.g., filtering, sorting lists)
-- Combining multiple state values
-- Creating intermediate state for conditional logic
+**何时使用：**
+- 来自状态的昂贵计算（例如过滤、排序列表）
+- 组合多个状态值
+- 为条件逻辑创建中间状态
 
 ```kotlin
 @Composable
@@ -128,13 +128,13 @@ fun UserList(users: List<User>, filterText: String) {
 }
 ```
 
-**Pitfall:** Using `derivedStateOf` for cheap operations (String concatenation, simple conditions) adds overhead. Only use when the computation is non-trivial.
+**陷阱：** 对廉价操作（字符串拼接、简单条件）使用 `derivedStateOf` 会增加开销。仅在计算非平凡时使用。
 
-**Pitfall:** Accessing `.value` in a lambda passed to a child composable doesn't create a dependency. Use `snapshotFlow` for callbacks.
+**陷阱：** 在传递给子 composable 的 lambda 中访问 `.value` 不会创建依赖。对回调使用 `snapshotFlow`。
 
 ## snapshotFlow
 
-Converts Compose state to Kotlin Flow for side effects and external APIs.
+将 Compose 状态转换为 Kotlin Flow 用于副作用和外部 API。
 
 ```kotlin
 @Composable
@@ -150,27 +150,27 @@ fun SearchScreen(viewModel: SearchViewModel) {
 }
 ```
 
-**Key behaviors:**
-- Emits initial value, then only on changes
-- Works with derivedStateOf, collections, and nested state
-- Runs in the composition's coroutine scope (launched via `LaunchedEffect`)
+**关键行为：**
+- 发射初始值，然后仅在变化时发射
+- 与 derivedStateOf、集合和嵌套状态一起工作
+- 在组合的协程作用域中运行（通过 `LaunchedEffect` 启动）
 
-**Pitfall:** Accessing state directly in a `LaunchedEffect` doesn't track changes:
+**陷阱：** 在 `LaunchedEffect` 中直接访问状态不会跟踪变化：
 ```kotlin
-// ❌ Won't re-run when query changes
+// ❌ query 变化时不会重新运行
 LaunchedEffect(Unit) {
-    viewModel.search(query)  // Capture at launch time only
+    viewModel.search(query)  // 仅在启动时捕获
 }
 
-// ✅ Re-runs when query changes
+// ✅ query 变化时重新运行
 LaunchedEffect(query) {
     viewModel.search(query)
 }
 ```
 
-## SnapshotStateList and SnapshotStateMap
+## SnapshotStateList 和 SnapshotStateMap
 
-Observable collections that trigger recomposition on structural changes.
+在结构变化时触发重组的可观察集合。
 
 ```kotlin
 val items = remember { mutableStateListOf<Item>() }
@@ -179,36 +179,36 @@ items[0] = Item(1, "Updated")
 items.removeAt(0)
 
 val map = remember { mutableStateMapOf<String, String>() }
-map["key"] = "value"  // Triggers recomposition
+map["key"] = "value"  // 触发重组
 ```
 
-**Important:** Changes to list contents trigger recomposition, but changes to list *elements* (if they're mutable objects) do not.
+**重要：** 列表内容的变化会触发重组，但列表*元素*的变化（如果它们是可变对象）不会。
 
 ```kotlin
 data class Item(val id: Int, var name: String)
 
 val items = remember { mutableStateListOf(Item(1, "First")) }
 
-// ✅ Triggers recomposition (list structure changed)
+// ✅ 触发重组（列表结构变化）
 items[0] = Item(1, "Updated")
 
-// ❌ Does NOT trigger recomposition (object mutated in-place)
-items[0].name = "Updated"  // Mutated but list reference unchanged
+// ❌ 不会触发重组（对象原地突变）
+items[0].name = "Updated"  // 已突变但列表引用未变
 
-// ✅ Correct: use copy() or mutableStateOf for nested state
+// ✅ 正确：使用 copy() 或 mutableStateOf 处理嵌套状态
 items[0] = items[0].copy(name = "Updated")
 ```
 
-See source: `androidx.compose.runtime.snapshots` for collection implementation.
+参见来源：`androidx.compose.runtime.snapshots` 中的集合实现。
 
-## @Stable and @Immutable Annotations
+## @Stable 和 @Immutable 注解
 
-These annotations help the compiler optimize recomposition (strong skipping mode).
+这些注解帮助编译器优化重组（强跳过模式）。
 
 ### @Immutable
-- All public fields are read-only primitives or other `@Immutable` types
-- Instances never change after construction
-- Compiler can skip recomposition if parameter unchanged
+- 所有 public 字段是只读原始类型或其他 `@Immutable` 类型
+- 实例在构造后永不改变
+- 如果参数未变，编译器可以跳过重组
 
 ```kotlin
 @Immutable
@@ -216,10 +216,10 @@ data class User(val id: Int, val name: String)
 ```
 
 ### @Stable
-- Implements structural equality (`equals`)
-- Public properties are read-only or observable
-- Changes are always notified to Compose (through state objects)
-- Weaker guarantee than `@Immutable`, but suitable for types with observable state
+- 实现结构相等性（`equals`）
+- public 属性是只读或可观察的
+- 变化始终通知 Compose（通过状态对象）
+- 比 `@Immutable` 保证更弱，但适合具有可观察状态的类型
 
 ```kotlin
 @Stable
@@ -227,48 +227,48 @@ class UserViewModel {
     val userName: State<String> = mutableStateOf("")
     val isLoading: State<Boolean> = mutableStateOf(false)
 
-    // Observable state, not direct properties
+    // 可观察状态，非直接属性
 }
 ```
 
-**Pitfall:** Not annotating data classes used as parameters. Unannotated types are assumed unstable, triggering unnecessary recompositions.
+**陷阱：** 未注解用作参数的数据类。未注解类型被假定为不稳定，触发不必要的重组。
 
 ```kotlin
-// ❌ Treated as unstable, causes recomposition
+// ❌ 被视为不稳定，导致重组
 class Config(val title: String, val color: Color)
 
-// ✅ Properly annotated
+// ✅ 正确注解
 @Immutable
 class Config(val title: String, val color: Color)
 ```
 
-## Strong Skipping Mode
+## 强跳过模式
 
-In Compose 1.6+, strong skipping mode applies stricter recomposition logic.
+在 Compose 1.6+ 中，强跳过模式应用更严格的重组逻辑。
 
-**What changed:**
-- Composables skip recomposition if *all* parameters have unchanged identity and value
-- Unannotated parameter types are treated as unstable (always recompose)
-- `@Stable` and `@Immutable` annotations are now critical for performance
-- Lambda parameters always cause recomposition (they're new instances)
+**变化：**
+- 如果*所有*参数的身份和值未变，composable 跳过重组
+- 未注解的参数类型被视为不稳定（始终重组）
+- `@Stable` 和 `@Immutable` 注解现在对性能至关重要
+- Lambda 参数始终导致重组（它们是新实例）
 
-**Enable strong skipping:**
+**启用强跳过：**
 ```gradle
 composeOptions {
-    kotlinCompilerExtensionVersion = "1.5.4+"  // enables by default
+    kotlinCompilerExtensionVersion = "1.5.4+"  // 默认启用
 }
 ```
 
-**Practical impact:**
+**实际影响：**
 ```kotlin
-// ❌ These create new instances, always recompose child
+// ❌ 这些创建新实例，始终重组子组件
 @Composable
 fun Parent() {
     Child(title = buildString { append("Title") })
-    Child(config = Config(...))  // Unstable type
+    Child(config = Config(...))  // 不稳定类型
 }
 
-// ✅ Cache instances
+// ✅ 缓存实例
 @Composable
 fun Parent() {
     val title = remember { "Title" }
@@ -278,12 +278,12 @@ fun Parent() {
 }
 ```
 
-## State in ViewModels: StateFlow vs Compose State
+## ViewModel 中的状态：StateFlow vs Compose 状态
 
-### StateFlow (Recommended for ViewModel)
-- Survives composition recomposition and configuration changes
-- Works with lifecycle (`collectAsStateWithLifecycle`)
-- Thread-safe, works across layers
+### StateFlow（ViewModel 推荐）
+- 在组合重组和配置变化中存活
+- 与生命周期一起工作（`collectAsStateWithLifecycle`）
+- 线程安全，跨层工作
 
 ```kotlin
 class UserViewModel : ViewModel() {
@@ -303,15 +303,15 @@ fun UserScreen(viewModel: UserViewModel) {
 }
 ```
 
-### Compose State (For UI-only state)
-- Use for temporary, UI-local state
-- Don't hoist to ViewModel
-- Lost on back navigation
+### Compose 状态（仅用于 UI 状态）
+- 用于临时的、UI 本地状态
+- 不要提升到 ViewModel
+- 返回导航时丢失
 
 ```kotlin
 @Composable
 fun SearchScreen(viewModel: SearchViewModel) {
-    var showFilters by remember { mutableStateOf(false) }  // UI-only
+    var showFilters by remember { mutableStateOf(false) }  // 仅 UI
     val searchResults by viewModel.searchResults.collectAsStateWithLifecycle()
 
     SearchUI(
@@ -322,20 +322,20 @@ fun SearchScreen(viewModel: SearchViewModel) {
 }
 ```
 
-**Key difference:** `collectAsStateWithLifecycle()` (in `androidx.lifecycle:lifecycle-runtime-compose`) collects only when the composable is in a STARTED state, avoiding memory leaks.
+**关键区别：** `collectAsStateWithLifecycle()`（在 `androidx.lifecycle:lifecycle-runtime-compose` 中）仅在 composable 处于 STARTED 状态时收集，避免内存泄漏。
 
-## Common Anti-Patterns
+## 常见反模式
 
-### State in Local Variables
+### 本地变量中的状态
 ```kotlin
-// ❌ Lost on recomposition
+// ❌ 重组时丢失
 @Composable
 fun Counter() {
-    var count = 0  // Reset to 0 on every recomposition
+    var count = 0  // 每次重组都重置为 0
     Button(onClick = { count++ }) { Text(count.toString()) }
 }
 
-// ✅ Correct
+// ✅ 正确
 @Composable
 fun Counter() {
     var count by remember { mutableIntStateOf(0) }
@@ -343,44 +343,44 @@ fun Counter() {
 }
 ```
 
-### Reading State in Wrong Scope
+### 在错误作用域中读取状态
 ```kotlin
-// ❌ Reads happen inside lambda; changes don't re-launch effect
+// ❌ 在 lambda 内部读取；变化不会重新启动 effect
 var count by remember { mutableIntStateOf(0) }
 LaunchedEffect(Unit) {
     while (true) {
         delay(1000)
-        println(count)  // Always prints 0
+        println(count)  // 始终打印 0
     }
 }
 
-// ✅ Pass state to LaunchedEffect key
+// ✅ 将状态传递给 LaunchedEffect key
 LaunchedEffect(count) {
     println("Count changed: $count")
 }
 ```
 
-### Creating State in Lambdas
+### 在 Lambda 中创建状态
 ```kotlin
-// ❌ Creates new state on every call
+// ❌ 每次调用都创建新状态
 val onButtonClick = {
-    val newValue = remember { mutableStateOf(0) }  // ERROR: Can't call remember in lambda
+    val newValue = remember { mutableStateOf(0) }  // 错误：不能在 lambda 中调用 remember
 }
 
-// ✅ Create state at composition level
+// ✅ 在组合层级创建状态
 var value by remember { mutableIntStateOf(0) }
 val onButtonClick = { value++ }
 ```
 
 ---
 
-**Source references:** `androidx.compose.runtime.State`, `androidx.compose.runtime.saveable`, `androidx.lifecycle.runtime.compose`
+**来源参考：** `androidx.compose.runtime.State`、`androidx.compose.runtime.saveable`、`androidx.lifecycle.runtime.compose`
 
 ---
 
 ## produceState
 
-Bridge between suspend functions and Compose state:
+桥接挂起函数和 Compose 状态：
 
 ```kotlin
 @Composable
@@ -389,9 +389,9 @@ fun UserProfile(userId: String): State<User?> = produceState<User?>(initialValue
 }
 ```
 
-Use when you need to convert a suspend function result into observable State. The coroutine is scoped to the composition and cancelled when the composable leaves.
+在需要将挂起函数结果转换为可观察状态时使用。协程作用域于组合，并在 composable 离开时取消。
 
-Can also observe flows:
+也可以观察 flow：
 ```kotlin
 @Composable
 fun NetworkStatus(): State<Boolean> = produceState(initialValue = false) {
@@ -403,7 +403,7 @@ fun NetworkStatus(): State<Boolean> = produceState(initialValue = false) {
 
 ## rememberUpdatedState
 
-Capture latest callback value in long-running effects:
+在长时间运行的副作用中捕获最新 callback 值：
 
 ```kotlin
 @Composable
@@ -411,16 +411,16 @@ fun Timer(onTimeout: () -> Unit) {
     val currentOnTimeout by rememberUpdatedState(onTimeout)
     LaunchedEffect(true) {
         delay(5000L)
-        currentOnTimeout() // Always calls the latest onTimeout, even if it changed
+        currentOnTimeout() // 始终调用最新的 onTimeout，即使它已变化
     }
 }
 ```
 
-Use when: a LaunchedEffect captures a callback that might change, but you don't want to restart the effect. Without `rememberUpdatedState`, the effect would use the stale original callback or need to restart on every callback change.
+使用场景：LaunchedEffect 捕获了可能变化的 callback，但你不想重启 effect。没有 `rememberUpdatedState`，effect 会使用过期的原始 callback 或需要在每次 callback 变化时重启。
 
 ---
 
-## Sealed UiState Pattern
+## 密封 UiState 模式
 
 ```kotlin
 sealed interface UiState<out T> {
@@ -430,26 +430,26 @@ sealed interface UiState<out T> {
 }
 ```
 
-Smart-cast safety:
+智能转换安全性：
 ```kotlin
-// BAD: smart cast can fail if uiState changes between check and usage
+// BAD: smart cast 可能在检查和用法之间失败
 if (uiState is UiState.Success) {
-    Content((uiState as UiState.Success).data) // Unsafe cast
+    Content((uiState as UiState.Success).data) // 不安全转换
 }
 
-// GOOD: val capture for safe smart cast
+// GOOD: 用 val 捕获实现安全 smart cast
 when (val state = uiState) {
     is UiState.Loading -> LoadingIndicator()
-    is UiState.Success -> Content(state.data) // Safe smart cast via val
+    is UiState.Success -> Content(state.data) // 通过 val 安全 smart cast
     is UiState.Error -> ErrorMessage(state.message)
 }
 ```
 
 ---
 
-## State Holder Class Pattern
+## 状态持有者类模式
 
-For complex screens with multiple interrelated state values, create a state holder:
+对于具有多个相互关联状态值的复杂屏幕，创建状态持有者：
 
 ```kotlin
 @Composable
@@ -476,21 +476,21 @@ class SearchState(
 }
 ```
 
-This pattern (used by `rememberScrollState`, `rememberDrawerState`, etc.) groups related state and logic into a single class, avoiding parameter bloat in composables.
+此模式（由 `rememberScrollState`、`rememberDrawerState` 等使用）将相关状态和逻辑分组到单个类中，避免 composable 中的参数膨胀。
 
 ---
 
-## Production State Rules
+## 生产环境状态规则
 
-### 1. mutableStateOf ONLY in composables, never in ViewModels
+### 1. mutableStateOf 仅在 composable 中使用，绝不在 ViewModel 中
 
 ```kotlin
-// BAD: Compose state in ViewModel couples VM to Compose runtime
+// BAD: ViewModel 中的 Compose 状态将 VM 与 Compose 运行时耦合
 class MyViewModel : ViewModel() {
-    var name by mutableStateOf("") // Don't do this
+    var name by mutableStateOf("") // 不要这样做
 }
 
-// GOOD: StateFlow in ViewModel — framework-agnostic, testable
+// GOOD: ViewModel 中使用 StateFlow — 与框架无关，可测试
 class MyViewModel : ViewModel() {
     private val _name = MutableStateFlow("")
     val name = _name.asStateFlow()
@@ -499,17 +499,17 @@ class MyViewModel : ViewModel() {
 }
 ```
 
-### 2. SharedFlow for one-shot events, NOT Channel
+### 2. 一次性事件使用 SharedFlow，而非 Channel
 
 ```kotlin
-// GOOD: SharedFlow with buffer for one-shot events
+// GOOD: 带缓冲的 SharedFlow 处理一次性事件
 private val _events = MutableSharedFlow<AppEvent>(extraBufferCapacity = 1)
 val events = _events.asSharedFlow()
 
-// Emit from ViewModel
+// 从 ViewModel 发射
 fun onAction() { _events.tryEmit(AppEvent.ShowSnackbar("Done")) }
 
-// Collect in composable
+// 在 composable 中收集
 LaunchedEffect(Unit) {
     viewModel.events.collect { event ->
         when (event) {
@@ -520,11 +520,11 @@ LaunchedEffect(Unit) {
 }
 ```
 
-### 3. rememberSaveable only at NavGraph level
+### 3. rememberSaveable 仅在 NavGraph 层级
 
-Use `rememberSaveable` for screen-level state (search query, tab selection) at the NavGraph entry point, not deep inside composable trees where it adds unnecessary persistence overhead.
+对 NavGraph 入口点的屏幕级状态（搜索查询、标签选择）使用 `rememberSaveable`，而不是在 composable 树深处使用，那样会增加不必要的持久化开销。
 
-### 4. snapshotFlow + distinctUntilChanged() for reactive scroll
+### 4. snapshotFlow + distinctUntilChanged() 用于响应式滚动
 
 ```kotlin
 LaunchedEffect(listState) {
@@ -534,11 +534,10 @@ LaunchedEffect(listState) {
 }
 ```
 
-### 5. .stateIn() with .map() for derived flows
+### 5. .stateIn() 配合 .map() 用于派生 flow
 
 ```kotlin
 val filteredItems = repository.items
     .map { items -> items.filter { it.isActive } }
     .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 ```
-

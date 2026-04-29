@@ -1,24 +1,24 @@
-# Auto-Init: Compose Project Detection
+# 自动初始化：Compose 项目检测
 
-Activate on `session_start`. Detect whether the current project uses Compose and
-silently activate the skill with a brief announcement.
+在 `session_start` 时激活。检测当前项目是否使用 Compose，
+并以简短提示静默激活 skill。
 
 ---
 
-## Detection Gate
+## 检测门控
 
-Run in order. Stop on first match.
+按顺序运行，首次匹配即停止。
 
-### Step 1 — Gradle scan
+### 步骤 1 — Gradle 扫描
 
-Look for `build.gradle.kts`, `build.gradle`, or `libs.versions.toml` in the working
-directory or one level up. Check file contents for any of:
+在工作目录或上级目录中查找 `build.gradle.kts`、`build.gradle` 或 `libs.versions.toml`。
+检查文件内容是否包含以下任一关键词：
 
 - `compose`
 - `androidx.compose`
 
 ```bash
-# Check working directory and parent
+# 检查工作目录及上级目录
 for dir in . ..; do
   for file in build.gradle.kts build.gradle libs.versions.toml; do
     if [ -f "$dir/$file" ]; then
@@ -28,33 +28,32 @@ for dir in . ..; do
 done
 ```
 
-### Step 2 — Source scan fallback
+### 步骤 2 — 源码扫描兜底
 
-If no Gradle file found or no Compose reference in Gradle, scan Kotlin source files.
+如果未找到 Gradle 文件或 Gradle 中无 Compose 引用，则扫描 Kotlin 源文件。
 
 ```bash
-# Find up to 10 .kt files (exclude build dirs), check for @Composable
+# 查找最多 10 个 .kt 文件（排除 build 目录），检查是否包含 @Composable
 find . -name "*.kt" -not -path "*/build/*" -print -quit 2>/dev/null | head -10 | \
   xargs grep -l "@Composable" 2>/dev/null | head -1
 ```
 
-If any file contains `@Composable`, detection succeeds.
+如果任一文件包含 `@Composable`，检测成功。
 
 ---
 
-## On Detection
+## 检测到后
 
-Print one line:
+输出一行提示：
 
 ```
 Compose project detected — compose-expert skill active.
 ```
 
-Then proceed normally — wait for the user's request and follow the standard workflow
-in `SKILL.md`.
+然后正常继续 —— 等待用户请求并遵循 SKILL.md 中的标准工作流。
 
-## On No Detection
+## 未检测到
 
-Do nothing. The skill remains available if the user explicitly triggers it via
-keyword (e.g., mentions `@Composable`, `LazyColumn`, `NavHost`, etc.) later in
-the session.
+不执行任何操作。如果用户在会话后期通过关键词显式触发
+（例如提及 `@Composable`、`LazyColumn`、`NavHost` 等），
+skill 仍然可用。

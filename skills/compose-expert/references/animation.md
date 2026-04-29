@@ -1,12 +1,12 @@
-# Animation in Jetpack Compose
+# Jetpack Compose 动画
 
-Reference: `androidx/compose/animation/animation/src/commonMain/kotlin/androidx/compose/animation/`
+参考：`androidx/compose/animation/animation/src/commonMain/kotlin/androidx/compose/animation/`
 
-## State-Based Animations
+## 基于状态的动画
 
 ### animate*AsState
 
-Animate individual properties by targeting a value. The animation starts when the value changes.
+通过目标值驱动单个属性的动画。值变化时动画启动。
 
 ```kotlin
 val size by animateDpAsState(
@@ -18,7 +18,7 @@ val size by animateDpAsState(
 Box(modifier = Modifier.size(size))
 ```
 
-Common variants:
+常用变体：
 
 ```kotlin
 animateColorAsState(targetValue = Color.Blue)
@@ -27,11 +27,11 @@ animateIntAsState(targetValue = 100)
 animateOffsetAsState(targetValue = Offset(10f, 20f))
 ```
 
-Each automatically handles coroutines and recomposition. Use the `label` parameter for debugging.
+每个变体自动处理协程和重组。使用 `label` 参数便于调试。
 
 ## AnimatedVisibility
 
-Controls appear/disappear animations with enter and exit transitions.
+控制出现/消失动画，支持进入和退出过渡。
 
 ```kotlin
 var visible by remember { mutableStateOf(true) }
@@ -40,11 +40,11 @@ AnimatedVisibility(visible = visible) {
     Text("Hello!")
 }
 
-// Trigger
+// 触发
 Button(onClick = { visible = !visible }) { Text("Toggle") }
 ```
 
-### Enter/Exit Transitions
+### 进入/退出过渡
 
 ```kotlin
 AnimatedVisibility(
@@ -56,16 +56,16 @@ AnimatedVisibility(
 }
 ```
 
-Built-in transitions:
+内置过渡：
 - `slideInVertically`, `slideOutVertically`
 - `slideInHorizontally`, `slideOutHorizontally`
 - `expandVertically`, `shrinkVertically`
 - `expandHorizontally`, `shrinkHorizontally`
 - `fadeIn`, `fadeOut`
 - `scaleIn`, `scaleOut`
-- Combine with `+`: `slideInVertically() + fadeIn()`
+- 使用 `+` 组合：`slideInVertically() + fadeIn()`
 
-### Advanced: Custom animation specs
+### 高级用法：自定义动画规格
 
 ```kotlin
 AnimatedVisibility(
@@ -85,7 +85,7 @@ AnimatedVisibility(
 
 ## AnimatedContent
 
-Replace content with smooth transitions.
+以平滑过渡替换内容。
 
 ```kotlin
 var count by remember { mutableStateOf(0) }
@@ -97,7 +97,7 @@ AnimatedContent(targetState = count) { target ->
 Button(onClick = { count++ }) { Text("Increment") }
 ```
 
-### Custom transitionSpec
+### 自定义 transitionSpec
 
 ```kotlin
 AnimatedContent(
@@ -110,9 +110,9 @@ AnimatedContent(
 }
 ```
 
-Use `with` to specify exit and enter together. This runs exits and entries simultaneously.
+使用 `with` 同时指定退出和进入。这会同时运行退出和进入动画。
 
-### Sequencing transitions
+### 编排过渡顺序
 
 ```kotlin
 AnimatedContent(
@@ -128,11 +128,11 @@ AnimatedContent(
 }
 ```
 
-`SizeTransform` animates container size smoothly during content changes.
+`SizeTransform` 在内容变化时平滑动画容器尺寸。
 
 ## Crossfade
 
-Simple content swap with fade effect.
+简单的内容切换，带淡入淡出效果。
 
 ```kotlin
 var showFirst by remember { mutableStateOf(true) }
@@ -146,11 +146,11 @@ Crossfade(targetState = showFirst) { state ->
 }
 ```
 
-Lightweight alternative to `AnimatedContent` for simple visibility toggles.
+`AnimatedContent` 的轻量级替代方案，用于简单的可见性切换。
 
 ## updateTransition
 
-Coordinate multiple animated values with a single state.
+使用单一状态协调多个动画值。
 
 ```kotlin
 var expanded by remember { mutableStateOf(false) }
@@ -167,11 +167,11 @@ Box(
 )
 ```
 
-All animations run in sync, controlled by a single state change. Useful for complex components with multiple animated properties.
+所有动画同步运行，由单一状态变化控制。适用于具有多个动画属性的复杂组件。
 
 ## rememberInfiniteTransition
 
-Create looping animations.
+创建循环动画。
 
 ```kotlin
 val infiniteTransition = rememberInfiniteTransition(label = "infinite")
@@ -189,11 +189,11 @@ val alpha by infiniteTransition.animateFloat(
 Text("Pulsing", modifier = Modifier.alpha(alpha))
 ```
 
-Runs continuously until the composable is removed. Perfect for loading states, pulsing indicators.
+持续运行直到 composable 被移除。非常适合加载状态、脉冲指示器。
 
 ## Animatable
 
-Imperative animation control in coroutines. Use for fine-grained control.
+在协程中进行命令式动画控制。用于精细控制。
 
 ```kotlin
 val animatable = remember { Animatable(0f) }
@@ -208,7 +208,7 @@ LaunchedEffect(trigger) {
 Box(Modifier.graphicsLayer(translationX = animatable.value))
 ```
 
-Useful for responding to gestures or complex conditions:
+适用于响应手势或复杂条件：
 
 ```kotlin
 val animatable = remember { Animatable(0f) }
@@ -225,9 +225,9 @@ Box(
 )
 ```
 
-## Animation Specifications
+## 动画规格
 
-### spring — Realistic, physics-based
+### spring — 基于物理的真实感
 
 ```kotlin
 val size by animateDpAsState(
@@ -236,12 +236,12 @@ val size by animateDpAsState(
 )
 ```
 
-- `dampingRatio`: `NoBouncy` (1f), `LowBouncy` (0.75f), `MediumBouncy` (0.5f), `HighBouncy` (0.2f)
-- `stiffness`: `Low`, `Medium`, `High`
+- `dampingRatio`：`NoBouncy` (1f), `LowBouncy` (0.75f), `MediumBouncy` (0.5f), `HighBouncy` (0.2f)
+- `stiffness`：`Low`, `Medium`, `High`
 
-Use for interactive feedback, familiar to users.
+用于交互反馈，对用户来说感觉自然。
 
-### tween — Time-based
+### tween — 基于时间
 
 ```kotlin
 val color by animateColorAsState(
@@ -250,11 +250,11 @@ val color by animateColorAsState(
 )
 ```
 
-Easing functions: `EaseInQuad`, `EaseOutQuad`, `EaseInOutQuad`, `LinearEasing`, `FastOutSlowInEasing`.
+缓动函数：`EaseInQuad`, `EaseOutQuad`, `EaseInOutQuad`, `LinearEasing`, `FastOutSlowInEasing`。
 
-Predictable timing, good for sequential animations.
+可预测的时间，适合顺序动画。
 
-### keyframes — Frame-by-frame control
+### keyframes — 逐帧控制
 
 ```kotlin
 val position by animateFloatAsState(
@@ -267,13 +267,13 @@ val position by animateFloatAsState(
 )
 ```
 
-Define exact values at specific timestamps. Use for complex choreography.
+在特定时间戳定义精确值。用于复杂编排。
 
-## Automatic Size Animation
+## 自动尺寸动画
 
 ### animateContentSize
 
-Smoothly animate Box size when content changes.
+内容变化时平滑动画 Box 尺寸。
 
 ```kotlin
 var expanded by remember { mutableStateOf(false) }
@@ -293,13 +293,13 @@ Box(
 }
 ```
 
-No need for explicit `AnimatedVisibility` or layout transitions. Handles the container automatically.
+不需要显式的 `AnimatedVisibility` 或布局过渡。自动处理容器。
 
-## Layout Animation in LazyLists
+## LazyLists 中的布局动画
 
-### animateItem — Replaces animateItemPlacement
+### animateItem — 替代 animateItemPlacement
 
-Animate item appearance, removal, and reordering.
+动画化条目的出现、移除和重新排序。
 
 ```kotlin
 LazyColumn {
@@ -317,26 +317,26 @@ LazyColumn {
 }
 ```
 
-Automatically animates:
-- New items sliding in
-- Removed items sliding out
-- Reordered items moving to new positions
+自动动画：
+- 新条目滑入
+- 移除条目滑出
+- 重新排序条目移动到新位置
 
-Called on items in Lazy layouts (LazyColumn, LazyRow, LazyVerticalGrid).
+在 Lazy 布局（LazyColumn、LazyRow、LazyVerticalGrid）中的条目上调用。
 
-## Shared Element Transitions
+## 共享元素过渡
 
-Animate elements seamlessly across screen boundaries using `SharedTransitionLayout` and Navigation Compose.
+使用 `SharedTransitionLayout` 和 Navigation Compose 跨屏幕边界无缝动画元素。
 
 ### sharedElement() vs sharedBounds()
 
-| Aspect | `sharedElement()` | `sharedBounds()` |
+| 方面 | `sharedElement()` | `sharedBounds()` |
 |---|---|---|
-| **Content** | Identical on both screens (same image, same icon) | Different content in source and target (e.g., card expands to detail) |
-| **Use case** | Hero image, avatar, thumbnail | Container transform, card-to-page |
-| **During transition** | Only the target composable is rendered | Both source and target are visible and crossfade |
+| **内容** | 两个屏幕上相同（同一张图片、同一个图标） | 源和目标内容不同（例如卡片展开为详情页） |
+| **用例** | 主图、头像、缩略图 | 容器变换、卡片到页面 |
+| **过渡期间** | 只渲染目标 composable | 源和目标都可见并交叉淡入淡出 |
 
-### Complete Working Example
+### 完整工作示例
 
 ```kotlin
 @Composable
@@ -372,7 +372,7 @@ fun ListScreen(
         Row(
             modifier = Modifier
                 .clickable { onItemClick(item.id) }
-                // sharedBounds wraps the entire card container (different content at source/target)
+                // sharedBounds 包裹整个卡片容器（源/目标内容不同）
                 .sharedBounds(
                     sharedContentState = rememberSharedContentState(key = "card-${item.id}"),
                     animatedVisibilityScope = animatedVisibilityScope,
@@ -390,7 +390,7 @@ fun ListScreen(
                 contentDescription = null,
                 modifier = Modifier
                     .size(80.dp)
-                    // sharedElement for the identical image across screens
+                    // sharedElement 用于跨屏幕相同的图片
                     .sharedElement(
                         state = rememberSharedContentState(key = "image-${item.id}"),
                         animatedVisibilityScope = animatedVisibilityScope
@@ -403,7 +403,7 @@ fun ListScreen(
                         state = rememberSharedContentState(key = "title-${item.id}"),
                         animatedVisibilityScope = animatedVisibilityScope
                     )
-                    // Prevent text reflow during transition by snapping to final size
+                    // 通过立即对齐到最终尺寸防止文本重排
                     .skipToLookaheadSize()
             )
         }
@@ -445,7 +445,7 @@ fun DetailScreen(
                     )
                     .skipToLookaheadSize()
             )
-            // Non-shared content fades in
+            // 非共享内容淡入
             Text(
                 text = item.description,
                 modifier = Modifier.animateEnterExit(
@@ -458,9 +458,9 @@ fun DetailScreen(
 }
 ```
 
-### BoundsTransform for Arc Motion
+### BoundsTransform 实现弧形运动
 
-Control the animation path between source and target bounds:
+控制源和目标边界之间的动画路径：
 
 ```kotlin
 val arcBoundsTransform = BoundsTransform { initialBounds, targetBounds ->
@@ -471,7 +471,7 @@ val arcBoundsTransform = BoundsTransform { initialBounds, targetBounds ->
     }
 }
 
-// Apply to sharedElement or sharedBounds
+// 应用到 sharedElement 或 sharedBounds
 Modifier.sharedElement(
     state = rememberSharedContentState(key = "hero"),
     animatedVisibilityScope = animatedVisibilityScope,
@@ -479,21 +479,21 @@ Modifier.sharedElement(
 )
 ```
 
-### Overlay Rendering
+### 叠加层渲染
 
-Keep shared elements above all other content during the transition:
+过渡期间将共享元素保持在所有其他内容之上：
 
 ```kotlin
 Modifier.sharedElement(
     state = rememberSharedContentState(key = "fab"),
     animatedVisibilityScope = animatedVisibilityScope,
-    renderInSharedTransitionScopeOverlay = true // Renders above navigation transitions
+    renderInSharedTransitionScopeOverlay = true // 在导航过渡之上渲染
 )
 ```
 
-### Preventing Text Reflow
+### 防止文本重排
 
-Use `skipToLookaheadSize()` so text composables snap to their final size immediately, avoiding awkward line-break changes mid-transition:
+使用 `skipToLookaheadSize()` 让文本 composable 立即对齐到最终尺寸，避免过渡中途出现尴尬的换行变化：
 
 ```kotlin
 Text(
@@ -503,44 +503,44 @@ Text(
             state = rememberSharedContentState(key = "title-${item.id}"),
             animatedVisibilityScope = animatedVisibilityScope
         )
-        .skipToLookaheadSize() // Text uses target size immediately, no reflow
+        .skipToLookaheadSize() // 文本立即使用目标尺寸，无重排
 )
 ```
 
-## Performance: graphicsLayer for Transforms
+## 性能：transform 使用 graphicsLayer
 
-Animate transforms using `graphicsLayer` instead of layout changes.
+使用 `graphicsLayer` 动画变换而非布局变化。
 
 ```kotlin
-// ✅ Correct: Uses GPU-accelerated graphicsLayer
+// ✅ 正确：使用 GPU 加速的 graphicsLayer
 val offset by animateFloatAsState(targetValue = 100f)
 Box(modifier = Modifier.graphicsLayer(translationX = offset))
 
-// ❌ Avoid: Causes recomposition and relayout
+// ❌ 避免：导致重组和重新布局
 val offset by animateFloatAsState(targetValue = 100f)
 Box(modifier = Modifier.offset(x = offset.dp))
 ```
 
-Use `graphicsLayer` for:
-- Translation (`translationX`, `translationY`)
-- Rotation (`rotationX`, `rotationY`, `rotationZ`)
-- Scale (`scaleX`, `scaleY`)
-- Alpha (opacity)
+对以下情况使用 `graphicsLayer`：
+- 平移（`translationX`, `translationY`）
+- 旋转（`rotationX`, `rotationY`, `rotationZ`）
+- 缩放（`scaleX`, `scaleY`）
+- Alpha（不透明度）
 
-## Anti-Patterns
+## 反模式
 
-### Don't: Animate visibility with if
+### 不要：用 if 动画化可见性
 
 ```kotlin
-// ❌ Anti-pattern
+// ❌ 反模式
 @Composable
 fun MyScreen() {
     if (visible) {
-        Text("Content") // Jumps in/out without animation
+        Text("Content") // 无动画直接出现/消失
     }
 }
 
-// ✅ Correct
+// ✅ 正确
 @Composable
 fun MyScreen() {
     AnimatedVisibility(visible = visible) {
@@ -549,23 +549,23 @@ fun MyScreen() {
 }
 ```
 
-### Don't: Create Animatable in composition
+### 不要：在 composition 中创建 Animatable
 
 ```kotlin
-// ❌ Anti-pattern
+// ❌ 反模式
 @Composable
 fun MyScreen() {
-    val animatable = Animatable(0f) // Recreated every recomposition!
+    val animatable = Animatable(0f) // 每次重组都重新创建！
 
     LaunchedEffect(Unit) {
         animatable.animateTo(100f)
     }
 }
 
-// ✅ Correct
+// ✅ 正确
 @Composable
 fun MyScreen() {
-    val animatable = remember { Animatable(0f) } // Preserved across recompositions
+    val animatable = remember { Animatable(0f) } // 跨重组保持
 
     LaunchedEffect(Unit) {
         animatable.animateTo(100f)
@@ -573,17 +573,17 @@ fun MyScreen() {
 }
 ```
 
-### Don't: Animate in composition phase
+### 不要：在 composition 阶段动画
 
 ```kotlin
-// ❌ Anti-pattern
+// ❌ 反模式
 @Composable
 fun MyScreen() {
     var position by remember { mutableStateOf(0f) }
-    position = position + 10f // Infinite recomposition loop!
+    position = position + 10f // 无限重组循环！
 }
 
-// ✅ Correct
+// ✅ 正确
 @Composable
 fun MyScreen() {
     var position by remember { mutableStateOf(0f) }
@@ -597,71 +597,71 @@ fun MyScreen() {
 }
 ```
 
-### Don't: Forget label parameter
+### 不要：忘记 label 参数
 
 ```kotlin
-// ❌ Anti-pattern (harder to debug)
+// ❌ 反模式（更难调试）
 val size by animateDpAsState(targetValue = 100.dp)
 
-// ✅ Correct
+// ✅ 正确
 val size by animateDpAsState(
     targetValue = 100.dp,
     label = "box_size"
 )
 ```
 
-Labels help with debugging layout inspector and animation inspection tools.
+Labels 有助于调试布局检查器和动画检查工具。
 
 ---
 
-## Animation Decision Tree
+## 动画决策树
 
-### When to Use Which API
+### 何时使用哪个 API
 
-| API | Use When |
+| API | 使用场景 |
 |---|---|
-| `animate*AsState` | Animating a single property (size, color, alpha) driven by state |
-| `AnimatedVisibility` | Showing or hiding a composable with enter/exit transitions |
-| `AnimatedContent` / `Crossfade` | Switching between different composables (content swap) |
-| `updateTransition` | Multiple properties that must animate in sync from the same state |
-| `Animatable` | Gesture-driven or imperative control (coroutine-based, supports `snapTo`, `animateDecay`) |
-| `rememberInfiniteTransition` | Infinite looping animations (pulsing, rotating, shimmer) |
-| `animateContentSize` | Smoothly animating a container's size when its content changes |
-| `animateItem` | List item appearance, disappearance, and reordering in Lazy layouts |
+| `animate*AsState` | 由状态驱动的单个属性（尺寸、颜色、alpha）动画 |
+| `AnimatedVisibility` | 以进入/退出过渡显示或隐藏 composable |
+| `AnimatedContent` / `Crossfade` | 在不同 composable 之间切换（内容交换） |
+| `updateTransition` | 多个属性必须从同一状态同步动画 |
+| `Animatable` | 手势驱动或命令式控制（基于协程，支持 `snapTo`、`animateDecay`） |
+| `rememberInfiniteTransition` | 无限循环动画（脉冲、旋转、闪烁） |
+| `animateContentSize` | 内容变化时平滑动画容器尺寸 |
+| `animateItem` | Lazy 布局中条目的出现、消失和重新排序 |
 
-### Which Phase Each Animation Affects
+### 每个动画影响的阶段
 
-Compose rendering has three phases: **Composition** (what to show), **Layout** (where to place), **Draw** (how to render). Animations should read state in the latest possible phase to minimize work.
+Compose 渲染有三个阶段：**Composition**（显示什么）、**Layout**（放置位置）、**Draw**（如何渲染）。动画应在尽可能晚的阶段读取状态以最小化工作量。
 
 ```kotlin
-// BEST: Draw phase only — no relayout, no recomposition
+// 最佳：仅 Draw 阶段 — 无重新布局，无重组
 val alpha by animateFloatAsState(targetValue = if (visible) 1f else 0f, label = "alpha")
 Box(
     modifier = Modifier.graphicsLayer { this.alpha = alpha }
 )
 
-// GOOD: Layout phase only — relayout but no recomposition
+// 良好：仅 Layout 阶段 — 重新布局但无重组
 val offsetPx by animateIntAsState(targetValue = if (moved) 300 else 0, label = "offset")
 Box(
     modifier = Modifier.offset { IntOffset(offsetPx, 0) }
 )
 
-// MODERATE: Composition + Layout — triggers recomposition on every frame
+// 一般：Composition + Layout — 每帧触发重组
 val offsetDp by animateDpAsState(targetValue = if (moved) 100.dp else 0.dp, label = "offset")
 Box(
     modifier = Modifier.offset(x = offsetDp)
 )
 ```
 
-**Rule:** Defer state reads to the latest possible phase. Use lambda-based modifiers (`graphicsLayer { }`, `offset { }`) instead of parameter-based modifiers (`graphicsLayer(alpha = ...)`, `offset(x = ...)`).
+**规则：** 将状态读取推迟到尽可能晚的阶段。使用基于 lambda 的 modifier（`graphicsLayer { }`、`offset { }`）而非基于参数的 modifier（`graphicsLayer(alpha = ...)`、`offset(x = ...)`）。
 
 ---
 
-## Design-to-Animation Translation
+## 设计到动画的翻译
 
-### Figma Easing Curves to Compose
+### Figma 缓动曲线到 Compose
 
-| Figma Easing | Compose Equivalent |
+| Figma Easing | Compose 等效项 |
 |---|---|
 | Linear | `LinearEasing` |
 | Ease In | `FastOutLinearInEasing` |
@@ -669,9 +669,9 @@ Box(
 | Ease In and Out | `FastOutSlowInEasing` |
 | Custom Bezier (x1, y1, x2, y2) | `CubicBezierEasing(x1, y1, x2, y2)` |
 
-### M3 Motion Duration Tokens
+### M3 Motion Duration Token
 
-| Token | Duration |
+| Token | 时长 |
 |---|---|
 | Short1 | 50ms |
 | Short2 | 100ms |
@@ -690,9 +690,9 @@ Box(
 | ExtraLong3 | 900ms |
 | ExtraLong4 | 1000ms |
 
-### M3 Easing Tokens
+### M3 Easing Token
 
-| Token | Compose Value |
+| Token | Compose 值 |
 |---|---|
 | Emphasized | `CubicBezierEasing(0.2f, 0f, 0f, 1f)` |
 | EmphasizedDecelerate | `CubicBezierEasing(0.05f, 0.7f, 0.1f, 1f)` |
@@ -701,28 +701,28 @@ Box(
 | StandardDecelerate | `LinearOutSlowInEasing` |
 | StandardAccelerate | `FastOutLinearInEasing` |
 
-### Spring Parameter Intuition
+### Spring 参数直觉
 
-**Stiffness** (how fast the animation moves toward its target):
+**Stiffness**（动画向目标移动的速度）：
 
-| Value | Constant | Feel |
+| 值 | 常量 | 感觉 |
 |---|---|---|
-| ~26f | — | Slow, heavy, lethargic |
-| 200f | `Spring.StiffnessLow` | Gentle, relaxed |
-| 400f | `Spring.StiffnessMediumLow` | Casual, comfortable |
-| 1500f | `Spring.StiffnessMedium` | Responsive, default |
-| 10000f | `Spring.StiffnessHigh` | Snappy, immediate |
+| ~26f | — | 缓慢、沉重、慵懒 |
+| 200f | `Spring.StiffnessLow` | 柔和、放松 |
+| 400f | `Spring.StiffnessMediumLow` | 随意、舒适 |
+| 1500f | `Spring.StiffnessMedium` | 响应迅速、默认 |
+| 10000f | `Spring.StiffnessHigh` | 干脆、即时 |
 
-**Damping Ratio** (how much bounce):
+**Damping Ratio**（弹跳程度）：
 
-| Value | Constant | Feel |
+| 值 | 常量 | 感觉 |
 |---|---|---|
-| 1.0f | `Spring.DampingRatioNoBouncy` | No overshoot, settles directly |
-| 0.75f | `Spring.DampingRatioLowBouncy` | Subtle bounce, professional |
-| 0.5f | `Spring.DampingRatioMediumBouncy` | Playful, noticeable bounce |
-| 0.2f | `Spring.DampingRatioHighBouncy` | Exaggerated, cartoonish bounce |
+| 1.0f | `Spring.DampingRatioNoBouncy` | 无超调，直接稳定 |
+| 0.75f | `Spring.DampingRatioLowBouncy` | 微妙弹跳，专业感 |
+| 0.5f | `Spring.DampingRatioMediumBouncy` | 活泼，明显弹跳 |
+| 0.2f | `Spring.DampingRatioHighBouncy` | 夸张，卡通感弹跳 |
 
-### Figma Spring to Compose Conversion
+### Figma Spring 到 Compose 转换
 
 ```kotlin
 fun figmaSpringToCompose(mass: Float, stiffness: Float, damping: Float): SpringSpec<Float> {
@@ -731,7 +731,7 @@ fun figmaSpringToCompose(mass: Float, stiffness: Float, damping: Float): SpringS
 }
 ```
 
-### Production-Validated Spring Specs
+### 生产验证的 Spring 规格
 
 ```kotlin
 val figmaMatchedSpring = spring<Float>(dampingRatio = 0.444f, stiffness = 26.5f)
@@ -741,9 +741,9 @@ val snappySpring = spring<Float>(dampingRatio = 0.6f, stiffness = 1000f)
 
 ---
 
-## Gesture-Driven Animations
+## 手势驱动动画
 
-### Swipe-to-Dismiss with Animatable
+### 使用 Animatable 的滑动删除
 
 ```kotlin
 fun Modifier.swipeToDismiss(onDismiss: () -> Unit): Modifier = composed {
@@ -754,11 +754,11 @@ fun Modifier.swipeToDismiss(onDismiss: () -> Unit): Modifier = composed {
         coroutineScope {
             while (true) {
                 val velocityTracker = VelocityTracker()
-                // Wait for touch down
+                // 等待触摸按下
                 val pointerId = awaitPointerEventScope {
                     awaitFirstDown().id
                 }
-                // Cancel any ongoing animation
+                // 取消任何进行中的动画
                 offsetX.stop()
 
                 awaitPointerEventScope {
@@ -780,11 +780,11 @@ fun Modifier.swipeToDismiss(onDismiss: () -> Unit): Modifier = composed {
 
                 launch {
                     if (abs(targetOffsetX) >= size.width * 0.5f) {
-                        // Fling far enough — dismiss
+                        // 甩得足够远 — 删除
                         offsetX.animateDecay(velocity, decay)
                         onDismiss()
                     } else {
-                        // Snap back
+                        // 弹回
                         offsetX.animateTo(
                             targetValue = 0f,
                             initialVelocity = velocity
@@ -797,7 +797,7 @@ fun Modifier.swipeToDismiss(onDismiss: () -> Unit): Modifier = composed {
 }
 ```
 
-### AnchoredDraggable Snap Points
+### AnchoredDraggable 吸附点
 
 ```kotlin
 enum class DragValue { Start, Center, End }
@@ -833,7 +833,7 @@ fun AnchoredDraggableExample() {
 }
 ```
 
-### Transformable: Pinch, Zoom, Rotate
+### Transformable：捏合、缩放、旋转
 
 ```kotlin
 @Composable
@@ -866,9 +866,9 @@ fun TransformableExample() {
 
 ---
 
-## Animation Recipes
+## 动画配方
 
-### Shimmer / Skeleton Loading
+### 闪烁 / 骨架屏加载
 
 ```kotlin
 fun Modifier.shimmerEffect(): Modifier = composed {
@@ -929,7 +929,7 @@ fun ContentWithLoading(isLoading: Boolean, content: @Composable () -> Unit) {
 }
 ```
 
-### Staggered List Entrance
+### 交错列表入场
 
 ```kotlin
 @Composable
@@ -961,7 +961,7 @@ fun StaggeredListEntrance(items: List<String>) {
 }
 ```
 
-### Swipe-to-Dismiss (Material 3)
+### 滑动删除（Material 3）
 
 ```kotlin
 @Composable
@@ -1015,7 +1015,7 @@ fun SwipeToDismissItem(
 }
 ```
 
-### Expandable Card
+### 可展开卡片
 
 ```kotlin
 @Composable
@@ -1053,7 +1053,7 @@ fun ExpandableCard(title: String, description: String) {
 }
 ```
 
-### Pull-to-Refresh Custom
+### 自定义下拉刷新
 
 ```kotlin
 @Composable
@@ -1092,9 +1092,9 @@ fun CustomPullToRefresh(
 }
 ```
 
-### FAB Morph
+### FAB 变形
 
-**Pattern 1: ExtendedFloatingActionButton with scroll-driven expand/collapse**
+**模式 1：ExtendedFloatingActionButton 配合滚动驱动的展开/收起**
 
 ```kotlin
 @Composable
@@ -1112,7 +1112,7 @@ fun CollapsibleFab(listState: LazyListState) {
 }
 ```
 
-**Pattern 2: Exploding FAB with updateTransition**
+**模式 2：使用 updateTransition 的爆炸式 FAB**
 
 ```kotlin
 @Composable
@@ -1140,7 +1140,7 @@ fun ExplodingFab(isExpanded: Boolean, onClick: () -> Unit) {
                 modifier = Modifier.graphicsLayer { alpha = contentAlpha },
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                // Expanded content
+                // 展开内容
                 Text("Option 1")
                 Text("Option 2")
                 Text("Option 3")
@@ -1150,7 +1150,7 @@ fun ExplodingFab(isExpanded: Boolean, onClick: () -> Unit) {
 }
 ```
 
-### Bottom Sheet Drag
+### 底部浮层拖拽
 
 ```kotlin
 enum class SheetValue { Hidden, Collapsed, Expanded }
@@ -1189,7 +1189,7 @@ fun DraggableBottomSheet(content: @Composable () -> Unit) {
             shadowElevation = 8.dp
         ) {
             Column(modifier = Modifier.fillMaxWidth().height(600.dp).padding(16.dp)) {
-                // Drag handle
+                // 拖拽把手
                 Box(
                     modifier = Modifier
                         .align(Alignment.CenterHorizontally)
@@ -1205,7 +1205,7 @@ fun DraggableBottomSheet(content: @Composable () -> Unit) {
 }
 ```
 
-### Parallax Scroll Header
+### 视差滚动头部
 
 ```kotlin
 @Composable
@@ -1217,7 +1217,7 @@ fun ParallaxHeader(scrollState: ScrollState) {
             .fillMaxWidth()
             .height(300.dp)
             .graphicsLayer {
-                translationY = scrollOffset * 0.6f // Parallax factor
+                translationY = scrollOffset * 0.6f // 视差因子
                 scaleX = 1f + (scrollOffset * 0.001f).coerceAtLeast(0f)
                 scaleY = 1f + (scrollOffset * 0.001f).coerceAtLeast(0f)
                 alpha = (1f - (scrollOffset / 600f)).coerceIn(0f, 1f)
@@ -1233,7 +1233,7 @@ fun ParallaxHeader(scrollState: ScrollState) {
 }
 ```
 
-### Animated Tab Switch
+### 动画标签切换
 
 ```kotlin
 @Composable
@@ -1265,11 +1265,11 @@ fun AnimatedTabContent(selectedTabIndex: Int) {
 
 ---
 
-## Sequential/Parallel Animation Choreography
+## 顺序/并行动画编排
 
-### Sequential (Coroutine Chaining)
+### 顺序（协程链式调用）
 
-Each `animateTo` suspends until complete, so chaining them creates sequential animation:
+每个 `animateTo` 挂起直到完成，因此链式调用创建顺序动画：
 
 ```kotlin
 val alpha = remember { Animatable(0f) }
@@ -1283,7 +1283,7 @@ LaunchedEffect(Unit) {
 }
 ```
 
-### Parallel (Multiple launch blocks)
+### 并行（多个 launch 块）
 
 ```kotlin
 val alpha = remember { Animatable(0f) }
@@ -1294,11 +1294,11 @@ LaunchedEffect(Unit) {
         launch { alpha.animateTo(1f, animationSpec = tween(300)) }
         launch { translateY.animateTo(0f, animationSpec = spring()) }
     }
-    // Code here runs after BOTH animations complete
+    // 这里的代码在两个动画都完成后运行
 }
 ```
 
-### Staggered Delays
+### 交错延迟
 
 ```kotlin
 val items = remember { List(5) { Animatable(0f) } }
@@ -1313,29 +1313,29 @@ LaunchedEffect(Unit) {
 }
 ```
 
-### Mixed Sequential + Parallel
+### 混合顺序 + 并行
 
 ```kotlin
 LaunchedEffect(Unit) {
-    // Phase 1: Sequential — fade in first
+    // 阶段 1：顺序 — 先淡入
     alpha.animateTo(1f, animationSpec = tween(200))
 
-    // Phase 2: Parallel — move and scale at the same time
+    // 阶段 2：并行 — 同时移动和缩放
     coroutineScope {
         launch { translateY.animateTo(0f, animationSpec = spring()) }
         launch { scale.animateTo(1f, animationSpec = spring()) }
     }
 
-    // Phase 3: Sequential — final flourish after Phase 2 completes
+    // 阶段 3：顺序 — 阶段 2 完成后的最终 flourish
     rotation.animateTo(360f, animationSpec = tween(400))
 }
 ```
 
 ---
 
-## Predictive Back Gesture Animation (Android 14+)
+## 预测性返回手势动画（Android 14+）
 
-### NavHost Transitions
+### NavHost 过渡
 
 ```kotlin
 NavHost(
@@ -1391,77 +1391,77 @@ fun PredictiveBackExample(onBack: () -> Unit) {
 }
 ```
 
-### M3 Automatic Predictive Back
+### M3 自动预测性返回
 
-These Material 3 components animate with predictive back gestures out of the box (no extra code needed):
+这些 Material 3 组件开箱即用地支持预测性返回手势动画（无需额外代码）：
 
-- `SearchBar` — collapses back on swipe
-- `ModalBottomSheet` — slides down with gesture progress
-- `ModalNavigationDrawer` — slides closed with gesture progress
+- `SearchBar` — 滑动时折叠返回
+- `ModalBottomSheet` — 随手势进度向下滑动
+- `ModalNavigationDrawer` — 随手势进度滑动关闭
 
 ---
 
-## Additional Anti-Patterns
+## 其他反模式
 
-### Don't: Read animated state in composition when draw-phase suffices
+### 不要：在 draw 阶段足够时在 composition 中读取动画状态
 
 ```kotlin
-// BAD: Reads alpha during composition, triggers recomposition every frame
+// BAD：在 composition 期间读取 alpha，每帧触发重组
 val alpha by animateFloatAsState(targetValue = 0.5f, label = "alpha")
 Box(modifier = Modifier.alpha(alpha))
 
-// GOOD: Reads alpha during draw phase only, skips recomposition
+// GOOD：仅在 draw 阶段读取 alpha，跳过重组
 val alpha by animateFloatAsState(targetValue = 0.5f, label = "alpha")
 Box(modifier = Modifier.graphicsLayer { this.alpha = alpha })
 ```
 
-### Don't: Use offset(x, y) for animated movement
+### 不要：使用 offset(x, y) 进行动画移动
 
 ```kotlin
-// BAD: Parameter-based offset triggers recomposition + relayout
+// BAD：基于参数的 offset 触发重组 + 重新布局
 val animatedDp by animateDpAsState(targetValue = 100.dp, label = "x")
 Box(modifier = Modifier.offset(x = animatedDp))
 
-// BETTER: Lambda offset — layout phase only, no recomposition
+// BETTER：基于 lambda 的 offset — 仅 layout 阶段，无重组
 val animatedPx by animateIntAsState(targetValue = 300, label = "x")
 Box(modifier = Modifier.offset { IntOffset(animatedPx, 0) })
 
-// BEST: graphicsLayer — draw phase only
+// BEST：graphicsLayer — 仅 draw 阶段
 val animatedPx by animateFloatAsState(targetValue = 300f, label = "x")
 Box(modifier = Modifier.graphicsLayer { translationX = animatedPx })
 ```
 
-### Don't: Use updateTransition for independent properties
+### 不要：对独立属性使用 updateTransition
 
 ```kotlin
-// BAD: Properties don't need synchronization but are coupled
+// BAD：属性不需要同步但被耦合
 val transition = updateTransition(targetState = state, label = "t")
 val alpha by transition.animateFloat(label = "a") { if (it) 1f else 0f }
 val size by transition.animateDp(label = "s") { if (it) 200.dp else 100.dp }
 
-// GOOD: Independent properties use separate animate*AsState
+// GOOD：独立属性使用独立的 animate*AsState
 val alpha by animateFloatAsState(targetValue = if (state) 1f else 0f, label = "alpha")
 val size by animateDpAsState(targetValue = if (state) 200.dp else 100.dp, label = "size")
 ```
 
-### Don't: Hardcode arbitrary durations
+### 不要：硬编码任意时长
 
 ```kotlin
-// BAD: Arbitrary duration with no design rationale
+// BAD：无设计依据的任意时长
 val anim by animateFloatAsState(
     targetValue = 1f,
     animationSpec = tween(durationMillis = 347),
     label = "anim"
 )
 
-// GOOD: Use M3 motion tokens for consistency
+// GOOD：使用 M3 motion token 保持一致性
 val anim by animateFloatAsState(
     targetValue = 1f,
     animationSpec = tween(durationMillis = MotionTokens.DurationMedium2.toInt()),
     label = "anim"
 )
 
-// BETTER: Use spring() for interruptible, natural-feeling animations
+// BETTER：使用 spring() 实现可中断、自然感的动画
 val anim by animateFloatAsState(
     targetValue = 1f,
     animationSpec = spring(stiffness = Spring.StiffnessMedium),

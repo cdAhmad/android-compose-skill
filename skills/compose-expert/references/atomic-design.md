@@ -1,23 +1,23 @@
-# Atomic Design System Reference
+# 原子设计系统参考
 
-Building reusable, hierarchical component systems in Jetpack Compose.
-Based on Brad Frost's atomic design methodology, mapped to Compose primitives.
+在 Jetpack Compose 中构建可复用的、层级化的组件系统。
+基于 Brad Frost 的原子设计方法论，映射到 Compose 原语。
 
 ---
 
-## 1. The 5-Level Hierarchy Mapped to Compose
+## 1. 五级层级映射到 Compose
 
-| Level | Compose Equivalent | Examples |
+| 层级 | Compose 等价物 | 示例 |
 |-------|-------------------|----------|
-| **Tokens** | `MaterialTheme.colorScheme.*`, `MaterialTheme.typography.*`, custom `CompositionLocal` tokens (spacing, elevation, brand colors) | `AppTheme.spacing.medium`, `AppTheme.colors.brandPrimary` |
-| **Atoms** | Single-purpose composables with one responsibility, slot API, modifier param. Either wrap M3 or build custom. | `AppButton`, `AppTextField`, `AppAvatar`, `AppIcon` |
-| **Molecules** | Composables that combine 2+ atoms into a functional unit | `SearchBar` (icon + text field), `MovieCard` (image + text), `UserListItem` |
-| **Organisms** | Screen sections combining molecules into a UI region | `MovieCatalogRow` (header + LazyRow of MovieCards), `NavigationDrawerWithContent` |
-| **Templates** | Screen layouts defining content areas without data — `Scaffold` + slot composition | `MainScreenTemplate(topBar, content, bottomBar)`, `DetailScreenTemplate(hero, body, actions)` |
+| **Tokens** | `MaterialTheme.colorScheme.*`、`MaterialTheme.typography.*`、自定义 `CompositionLocal` token（间距、阴影、品牌色） | `AppTheme.spacing.medium`、`AppTheme.colors.brandPrimary` |
+| **Atoms** | 单一职责、slot API、modifier 参数的单用途 composable。包裹 M3 或自定义构建。 | `AppButton`、`AppTextField`、`AppAvatar`、`AppIcon` |
+| **Molecules** | 将 2+ 个 atom 组合成功能单元的 composable | `SearchBar`（图标 + 文本框）、`MovieCard`（图片 + 文本）、`UserListItem` |
+| **Organisms** | 将 molecule 组合成 UI 区域的屏幕区块 | `MovieCatalogRow`（标题 + MovieCard 的 LazyRow）、`NavigationDrawerWithContent` |
+| **Templates** | 定义内容区域但不绑定数据的屏幕布局 — `Scaffold` + slot 组合 | `MainScreenTemplate(topBar, content, bottomBar)`、`DetailScreenTemplate(hero, body, actions)` |
 
-**Dependency rule:** each level depends only on levels below it. An organism should not use
-raw `Text()` — it should use an atom. A molecule should not hardcode colors — it should use
-tokens via `MaterialTheme` or custom `CompositionLocal`.
+**依赖规则：** 每一层只依赖其下方的层。Organism 不应使用
+原始 `Text()` — 它应使用 atom。Molecule 不应硬编码颜色 — 它应通过
+`MaterialTheme` 或自定义 `CompositionLocal` 使用 token。
 
 ```
 Template
@@ -29,25 +29,25 @@ Template
 
 ---
 
-## 2. Token Layer
+## 2. Token 层
 
-Tokens are the foundation. Every visual property (color, typography, spacing, shape, motion)
-should come from a token — never hardcoded in a composable body.
+Token 是基础。每个视觉属性（颜色、排版、间距、形状、动效）
+都应来自 token — 绝不要在 composable 体内硬编码。
 
-### M3 tokens (use directly)
+### M3 token（直接使用）
 
-These are already provided by `MaterialTheme`:
+这些已由 `MaterialTheme` 提供：
 
-- `MaterialTheme.colorScheme` — primary, secondary, surface, error, etc.
-- `MaterialTheme.typography` — displayLarge through labelSmall
-- `MaterialTheme.shapes` — extraSmall through extraLarge
-- `MaterialTheme.motionScheme` — `defaultSpatialSpec()`, `defaultEffectsSpec()`
+- `MaterialTheme.colorScheme` — primary、secondary、surface、error 等
+- `MaterialTheme.typography` — displayLarge 到 labelSmall
+- `MaterialTheme.shapes` — extraSmall 到 extraLarge
+- `MaterialTheme.motionScheme` — `defaultSpatialSpec()`、`defaultEffectsSpec()`
 
-### App-level custom tokens
+### 应用级自定义 token
 
-Create when M3 doesn't cover your need. Use `CompositionLocal` + a wrapper theme.
+当 M3 无法满足需求时创建。使用 `CompositionLocal` + 包裹主题。
 
-**Spacing scale:**
+**间距尺度：**
 ```kotlin
 object AppSpacing {
     val xxs = 2.dp
@@ -60,7 +60,7 @@ object AppSpacing {
 val LocalAppSpacing = staticCompositionLocalOf { AppSpacing }
 ```
 
-**Brand colors (beyond M3 colorScheme):**
+**品牌色（超出 M3 colorScheme）：**
 ```kotlin
 data class AppBrandColors(
     val accent: Color,
@@ -76,7 +76,7 @@ val LocalAppBrandColors = staticCompositionLocalOf {
 }
 ```
 
-**Access pattern — wrap in `AppTheme`:**
+**访问模式 — 包裹在 `AppTheme` 中：**
 ```kotlin
 @Composable
 fun AppTheme(content: @Composable () -> Unit) {
@@ -89,44 +89,44 @@ fun AppTheme(content: @Composable () -> Unit) {
         )
     ) {
         MaterialTheme(
-            colorScheme = /* your color scheme */,
-            typography = /* your typography */,
-            shapes = /* your shapes */,
+            colorScheme = /* 你的 color scheme */,
+            typography = /* 你的 typography */,
+            shapes = /* 你的 shapes */,
         ) {
             content()
         }
     }
 }
 
-// Usage anywhere in the tree:
+// 在树中任意位置使用：
 val spacing = LocalAppSpacing.current
 val brandColors = LocalAppBrandColors.current
 ```
 
-**When to create a custom token vs. use M3 directly:**
-- M3 covers it → use `MaterialTheme.*` directly
-- App-specific concept (brand accent, spacing scale, elevation scale) → custom `CompositionLocal`
-- One-off value needed in a single component → not a token, just a local constant
+**何时创建自定义 token vs. 直接使用 M3：**
+- M3 已覆盖 → 直接使用 `MaterialTheme.*`
+- 应用专属概念（品牌强调色、间距尺度、阴影尺度） → 自定义 `CompositionLocal`
+- 单个组件中需要的一次性值 → 不是 token，只是局部常量
 
 ---
 
-## 3. Atom Patterns
+## 3. Atom 模式
 
-Atoms are the smallest reusable UI units. Every atom must satisfy the **atom contract**.
+Atom 是最小的可复用 UI 单元。每个 atom 必须满足 **atom 契约**。
 
-### Atom Contract
+### Atom 契约
 
-Every atom (public composable that renders UI) must satisfy:
+每个 atom（渲染 UI 的 public composable）必须满足：
 
-1. **`modifier: Modifier = Modifier` parameter** — caller controls layout
-2. **Slot APIs for variable content** — `@Composable () -> Unit` or scoped like `@Composable RowScope.() -> Unit`
-3. **Token-based styling** — no hardcoded `Color(0xFF...)`, `14.sp`, `FontWeight.Bold`
-4. **Sensible defaults** — works without configuration
-5. **Preview composable** — `@Preview` function for visual verification
+1. **`modifier: Modifier = Modifier` 参数** — 调用方控制布局
+2. **可变内容的 Slot API** — `@Composable () -> Unit` 或带作用域的如 `@Composable RowScope.() -> Unit`
+3. **基于 Token 的样式** — 无硬编码 `Color(0xFF...)`、`14.sp`、`FontWeight.Bold`
+4. **合理的默认值** — 无需配置即可工作
+5. **Preview composable** — 用于视觉验证的 `@Preview` 函数
 
-### Two atom types
+### 两种 atom 类型
 
-**1. M3 wrapper atoms** — wrap an M3 component with brand defaults:
+**1. M3 包裹 atom** — 用品牌默认值包裹 M3 组件：
 
 ```kotlin
 @Composable
@@ -149,7 +149,7 @@ fun AppButton(
 }
 ```
 
-**2. Custom atoms** — when no M3 equivalent exists:
+**2. 自定义 atom** — 无 M3 等价物时：
 
 ```kotlin
 @Composable
@@ -174,24 +174,24 @@ enum class AvatarSize(val dp: Dp) {
 }
 ```
 
-### Naming rule
+### 命名规则
 
-Name by what the component **IS**, not where it's used.
+按组件**是什么**命名，而非在哪里使用。
 
-| Bad | Good | Why |
+| 不好 | 好 | 原因 |
 |-----|------|-----|
-| `ButtonWithBoldCTA` | `AppButton` | The boldness is a style variant, not a component |
-| `RedBorderCard` | `HighlightCard` or `AppCard` | Named by visual appearance, not function |
-| `HomeMovieCard` | `MovieCard` | Named by screen, not reusable |
-| `ButtonForSettings` | `AppButton` | Named by context, not function |
+| `ButtonWithBoldCTA` | `AppButton` | 粗体是样式变体，不是组件 |
+| `RedBorderCard` | `HighlightCard` 或 `AppCard` | 按视觉外观命名，而非功能 |
+| `HomeMovieCard` | `MovieCard` | 按屏幕命名，不可复用 |
+| `ButtonForSettings` | `AppButton` | 按上下文命名，而非功能 |
 
 ---
 
-## 4. Molecule, Organism, and Template Patterns
+## 4. Molecule、Organism 和 Template 模式
 
-### Molecule — composes 2+ atoms
+### Molecule — 组合 2+ 个 atom
 
-A molecule combines atoms into a functional unit. It accepts data and callbacks, not ViewModels.
+Molecule 将 atom 组合成功能单元。它接受数据和回调，不接受 ViewModel。
 
 ```kotlin
 @Composable
@@ -208,9 +208,9 @@ fun MovieCard(
 }
 ```
 
-### Organism — composes molecules into a UI region
+### Organism — 将 molecule 组合成 UI 区域
 
-An organism is a screen section. It still accepts data as parameters — never reads from a ViewModel directly.
+Organism 是屏幕区块。它仍然接受数据作为参数 — 绝不直接读取 ViewModel。
 
 ```kotlin
 @Composable
@@ -233,9 +233,9 @@ fun MovieCatalogRow(
 }
 ```
 
-### Template — defines screen layout via slot composition
+### Template — 通过 slot 组合定义屏幕布局
 
-Templates define where content goes, not what it is. They accept slot parameters, no data.
+Template 定义内容放在哪里，而非内容是什么。它接受 slot 参数，不接受数据。
 
 ```kotlin
 @Composable
@@ -254,53 +254,53 @@ fun CatalogScreenTemplate(
 }
 ```
 
-### Level summary
+### 层级总结
 
-| Level | Accepts | Composes | ViewModel? |
+| 层级 | 接受 | 组合 | ViewModel? |
 |-------|---------|----------|-----------|
-| Atom | Primitives, slots, modifier | M3 components or raw Compose | No |
-| Molecule | Data classes, callbacks, modifier | Atoms | No |
-| Organism | Data, callbacks, modifier | Molecules + atoms | No |
-| Template | Slots only, modifier | Scaffold + layout | No |
-| Screen | ViewModel | Template + organisms + molecules | Yes — this is the only level that touches ViewModel |
+| Atom | 原语、slot、modifier | M3 组件或原始 Compose | 否 |
+| Molecule | 数据类、回调、modifier | Atom | 否 |
+| Organism | 数据、回调、modifier | Molecule + atom | 否 |
+| Template | 仅 slot、modifier | Scaffold + 布局 | 否 |
+| Screen | ViewModel | Template + organism + molecule | 是 — 这是唯一接触 ViewModel 的层级 |
 
 ---
 
-## 5. The "Ask" Prompt
+## 5. "Ask" 提示
 
-When the skill detects component-building intent (user asks to "build a card", "create a button",
-"implement this component"), **before scaffolding code**, ask:
+当 skill 检测到构建组件的意图（用户要求 "build a card"、"create a button"、
+"implement this component"），**在搭建代码之前**，询问：
 
-> "This looks like a **[molecule/organism]**. Should I also scaffold the **[lower-level] atoms**
-> it needs, or does your codebase already have them?"
+> "这看起来是一个 **[molecule/organism]**。是否需要我同时搭建它所需的 **[下层] atom**，
+> 还是你的代码库中已经有了？"
 
-The developer can answer:
+开发者可以回答：
 
-| Answer | Skill behavior |
+| 回答 | Skill 行为 |
 |--------|---------------|
-| "Yes, scaffold everything" | Create from token layer up — define spacing/color tokens, atoms, then the requested component |
-| "Just build the card" | Build the requested component using atomic principles (slots, modifier, tokens) but don't create lower-level atoms |
-| "We already have AppButton, AppImage" | Reuse those atoms, only build the new molecule/organism |
+| "是的，全部搭建" | 从 token 层开始创建 — 定义间距/颜色 token、atom，然后是请求的组件 |
+| "只构建卡片" | 使用原子原则（slot、modifier、token）构建请求的组件，但不创建下层 atom |
+| "我们已有 AppButton、AppImage" | 复用这些 atom，只构建新的 molecule/organism |
 
-**The skill always applies atomic principles regardless of the answer.** The question is only
-about whether to scaffold lower levels. Every component gets:
+**无论回答如何，skill 始终应用原子原则。** 问题只关乎
+是否搭建下层。每个组件都获得：
 - `modifier: Modifier = Modifier`
-- Slot APIs where appropriate
-- Token-based styling (no hardcoded values)
-- Sensible defaults
+- 适当的 Slot API
+- 基于 Token 的样式（无硬编码值）
+- 合理的默认值
 
 ---
 
-## 6. Anti-Patterns
+## 6. 反模式
 
-| Anti-Pattern | Why It's Wrong | Fix |
+| 反模式 | 错误原因 | 修复 |
 |-------------|---------------|-----|
-| `Color(0xFF1A73E8)` inside a composable body | Hardcoded color — not themeable, not dark-mode-safe | Use `MaterialTheme.colorScheme.*` or app brand token |
-| `fontSize = 14.sp`, `fontWeight = FontWeight.Bold` | Hardcoded typography breaks consistency | Use `MaterialTheme.typography.*` |
-| `Modifier.padding(16.dp)` without spacing token | Magic number spacing — inconsistent across app | Use `LocalAppSpacing.current.md` (or define a spacing scale) |
-| Composable named `ButtonForSettings` / `CardWithRedBorder` | Named by context, not by function — not reusable | Name by what it IS: `AppButton`, `HighlightCard` |
-| Public composable with no `modifier` parameter | Caller cannot control layout | Add `modifier: Modifier = Modifier`, pass to root element |
-| Composable rendering UI with no slot parameters | Content is hardcoded, not composable | Add slot APIs for variable content |
-| Raw `Text()` / `Button()` / `Icon()` in an organism | Skips atomic levels — loses theming and consistency | Use app-level atom wrappers |
-| Organism that directly reads ViewModel | Couples UI to data layer — not reusable, not previewable | Accept data and callbacks as parameters; let the screen call ViewModel |
-| Molecule with more than 3–4 responsibilities | Too much in one component — hard to reuse parts | Decompose into smaller molecules or extract atoms |
+| composable 体内使用 `Color(0xFF1A73E8)` | 硬编码颜色 — 无法换主题，不支持暗色模式 | 使用 `MaterialTheme.colorScheme.*` 或应用品牌 token |
+| `fontSize = 14.sp`、`fontWeight = FontWeight.Bold` | 硬编码排版破坏一致性 | 使用 `MaterialTheme.typography.*` |
+| `Modifier.padding(16.dp)` 无间距 token | 魔法数字间距 — 应用各处不一致 | 使用 `LocalAppSpacing.current.md`（或定义间距尺度） |
+| 名为 `ButtonForSettings` / `CardWithRedBorder` 的 composable | 按上下文命名，而非功能 — 不可复用 | 按它**是什么**命名：`AppButton`、`HighlightCard` |
+| Public composable 无 `modifier` 参数 | 调用方无法控制布局 | 添加 `modifier: Modifier = Modifier`，传递给根元素 |
+| 渲染 UI 的 composable 无 slot 参数 | 内容硬编码，不可组合 | 为可变内容添加 slot API |
+| Organism 中使用原始 `Text()` / `Button()` / `Icon()` | 跳过原子层级 — 丢失主题和一致性 | 使用应用级 atom 包裹器 |
+| Organism 直接读取 ViewModel | 将 UI 与数据层耦合 — 不可复用、无法预览 | 接受数据和回调作为参数；让 screen 调用 ViewModel |
+| 承担 3–4 个以上职责的 Molecule | 一个组件中塞太多 — 难以复用局部 | 分解为更小的 molecule 或提取 atom |
