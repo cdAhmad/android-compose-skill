@@ -666,7 +666,7 @@ android {
 }
 ```
 
-In `proguard-rules.pro`, R8 automatically strips `@Preview` composables from release builds. For semantics stripping in production (accessibility data you don't need in release), use `Modifier.clearAndSetSemantics {}` selectively rather than blanket removal.
+In `proguard-rules.pro`, R8 automatically strips `@Preview` composables from release builds.
 
 ### Rule 5: Pragmatic Collection Stability
 

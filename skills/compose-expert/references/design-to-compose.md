@@ -1,6 +1,6 @@
 # Design-to-Compose Translation Reference
 
-Translating visual designs (Figma mockups, screenshots, wireframes) into production Compose code. This guide provides a systematic decomposition algorithm, property mapping tables, and patterns that produce clean, theme-aware, accessible composables on the first pass.
+Translating visual designs (Figma mockups, screenshots, wireframes) into production Compose code. This guide provides a systematic decomposition algorithm, property mapping tables, and patterns that produce clean, theme-aware composables on the first pass.
 
 ---
 
@@ -528,7 +528,7 @@ Modifier
 
 ## 5. Semantic vs Literal Translation
 
-Figma designs express visual output. Compose code should express semantics. Always prefer Material 3 components over manually reconstructing their appearance with `Box` + modifiers.
+Figma designs express visual output. Compose code should express component intent. Always prefer Material 3 components over manually reconstructing their appearance with `Box` + modifiers.
 
 ### Anti-pattern: Literal Translation
 
@@ -585,7 +585,6 @@ ElevatedCard(
 | Dark theme | Breaks (hardcoded colors) | Automatic |
 | Elevation overlay | Missing | Built-in tonal elevation |
 | Ripple / feedback | Must add manually | Built-in |
-| Accessibility | Must add semantics manually | Roles + descriptions built-in |
 | Dynamic color (Material You) | Does not respond | Automatic |
 | State handling (disabled, focused) | Manual | Built-in styling per state |
 
@@ -662,34 +661,7 @@ Box(Modifier.background(MaterialTheme.colorScheme.surfaceVariant))
 
 Hardcoded values break dark theme, dynamic color, and design system updates. The only acceptable hardcoded color is inside your theme definition files.
 
-### Ignoring Accessibility
-
-```kotlin
-// Anti-pattern: no content description, tiny touch target
-Icon(
-    imageVector = Icons.Default.Favorite,
-    contentDescription = null,  // Screen readers skip this
-    modifier = Modifier
-        .size(20.dp)            // Below 48dp minimum touch target
-        .clickable { onFavorite() }
-)
-
-// Correct: accessible
-IconButton(onClick = onFavorite) {  // IconButton enforces 48dp minimum
-    Icon(
-        imageVector = Icons.Default.Favorite,
-        contentDescription = "Add to favorites"
-    )
-}
-```
-
-**Accessibility checklist for design translation:**
-
-- All interactive elements have minimum 48dp touch targets (use `IconButton`, `TextButton`, or `Modifier.sizeIn(minWidth = 48.dp, minHeight = 48.dp)`)
-- All images and icons have meaningful `contentDescription` (or `null` if purely decorative, paired with `Modifier.semantics { }` as needed)
-- Color contrast ratios meet WCAG AA (4.5:1 for text, 3:1 for large text)
-- Interactive states are visually distinguishable (not just color change)
-
+### Designing for One Screen Width Only
 ### Designing for One Screen Width Only
 
 ```kotlin

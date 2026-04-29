@@ -1,6 +1,6 @@
 # CompositionLocals: Implicit Data Passing in Jetpack Compose
 
-CompositionLocals provide a way to pass data implicitly down the composition tree without threading it through every function parameter. They're analogous to SwiftUI's `@Environment`.
+CompositionLocals provide a way to pass data implicitly down the composition tree without threading it through every function parameter.
 
 ## What Are CompositionLocals?
 

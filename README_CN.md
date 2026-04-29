@@ -70,7 +70,6 @@ AI 编程工具生成的 Compose 代码虽然能编译，但细节往往不对�
 | 副作用 | `LaunchedEffect`、`DisposableEffect`、`SideEffect`、`rememberCoroutineScope` |
 | Modifier | 顺序规则、自定义 Modifier、`Modifier.Node` 迁移 |
 | 主题 | `MaterialTheme`、`ColorScheme`、动态取色、`Typography`、形状、深色模式 |
-| 无障碍 | Semantics、`contentDescription`、遍历顺序、触摸目标、TalkBack |
 | CompositionLocal | `LocalContext`、`LocalDensity`、自定义 Local、何时用参数传递更合适 |
 | 废弃模式 | 已移除的 API、旧版本 Compose 的迁移路径 |
 | **Styles API（实验性）** | `Style {}`、`MutableStyleState`、`Modifier.styleable()`、组合、主题集成、alpha06 陷阱 |
@@ -124,7 +123,6 @@ skills/compose-expert/
     ├── animation.md                      # animate*AsState、AnimatedVisibility、转场
     ├── theming-material3.md              # MaterialTheme、ColorScheme、动态取色
     ├── performance.md                    # 重组、稳定性、基准测试
-    ├── accessibility.md                  # Semantics、contentDescription、测试
     ├── deprecated-patterns.md            # 已移除 API、迁移路径
     ├── styles-experimental.md           # Styles API（@ExperimentalFoundationStyleApi）
     ├── design-to-compose.md             # Figma/截图分解、属性映射

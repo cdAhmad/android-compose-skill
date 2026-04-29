@@ -626,7 +626,6 @@ A systematic 5-step process for translating a visual design (Figma frame, screen
 **Step 5: Identify interactive elements**
 - Buttons, text fields, toggles, checkboxes -> map to Material 3 components
 - Custom clickable areas -> `Modifier.clickable` with `role = Role.Button`
-- Add `contentDescription` for accessibility
 - Ensure 48dp minimum touch targets
 
 ## Screen Structure Patterns

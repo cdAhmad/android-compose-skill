@@ -74,7 +74,6 @@ Read the relevant reference file(s) from `references/` before answering:
 | `animate*AsState`, `AnimatedVisibility`, `Crossfade`, transitions | `references/animation.md` — for M3 token selection, also see `references/material3-motion.md` |
 | `MaterialTheme`, `ColorScheme`, dynamic color, `Typography`, shapes | `references/theming-material3.md` — for motion, see `references/material3-motion.md`; for design tokens, see `references/atomic-design.md` |
 | Recomposition skipping, stability, baseline profiles, benchmarking | `references/performance.md` |
-| Semantics, content descriptions, traversal order, testing | `references/accessibility.md` |
 | Removed/replaced APIs, migration paths from older Compose versions | `references/deprecated-patterns.md` |
 | **Styles API** (experimental): `Style {}`, `MutableStyleState`, `Modifier.styleable()` | `references/styles-experimental.md` |
 | Figma/screenshot decomposition, design tokens, spacing, modifier ordering | `references/design-to-compose.md` |

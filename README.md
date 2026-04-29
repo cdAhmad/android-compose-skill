@@ -69,7 +69,6 @@ This skill fixes that by giving your AI assistant two things:
 | Side effects | `LaunchedEffect`, `DisposableEffect`, `SideEffect`, `rememberCoroutineScope` |
 | Modifiers | Ordering rules, custom modifiers, `Modifier.Node` migration |
 | Theming | `MaterialTheme`, `ColorScheme`, dynamic color, `Typography`, shapes, dark theme |
-| Accessibility | Semantics, content descriptions, traversal order, touch targets, TalkBack |
 | CompositionLocals | `LocalContext`, `LocalDensity`, custom locals, when to use vs. parameter passing |
 | Deprecated patterns | Removed APIs, migration paths from older Compose versions |
 | **Styles API (experimental)** | `Style {}`, `MutableStyleState`, `Modifier.styleable()`, composition, theme integration, alpha06 gotchas |
@@ -123,7 +122,6 @@ skills/compose-expert/
     ├── animation.md                      # animate*AsState, AnimatedVisibility, transitions
     ├── theming-material3.md              # MaterialTheme, ColorScheme, dynamic color
     ├── performance.md                    # Recomposition, stability, benchmarking
-    ├── accessibility.md                  # Semantics, content descriptions, testing
     ├── deprecated-patterns.md            # Removed APIs, migration paths
     ├── styles-experimental.md           # Styles API (@ExperimentalFoundationStyleApi)
     ├── design-to-compose.md             # Figma/screenshot decomposition, property mapping

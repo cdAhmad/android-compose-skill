@@ -1,6 +1,6 @@
 # Jetpack Compose Modifiers Reference
 
-Modifiers are the primary way to decorate or augment a composable. They apply layout, drawing, gesture, and accessibility behavior. Understanding modifier ordering and the available APIs is critical for correctness and performance.
+Modifiers are the primary way to decorate or augment a composable. They apply layout, drawing, gesture, and behavior. Understanding modifier ordering and the available APIs is critical for correctness and performance.
 
 ## Modifier Chain Ordering
 
@@ -246,39 +246,6 @@ Box(Modifier.scale(scaleX)) { }
 
 Source: `compose/ui/ui/src/commonMain/kotlin/androidx/compose/ui/graphics/GraphicsLayerModifier.kt`
 
-## Modifier.semantics — Accessibility
-
-Semantics describe the meaning of UI elements for screen readers and accessibility tests.
-
-```kotlin
-// Add semantic label
-Button(onClick = { }) {
-    Icon(Icons.Default.Add, contentDescription = null)
-    Text("Add item")
-}
-
-// Custom semantic properties
-Box(
-    Modifier
-        .size(100.dp)
-        .semantics {
-            contentDescription = "Custom box"
-            onClick(label = "Activate") { true }
-        }
-) { }
-
-// Do: always provide contentDescription for images
-Image(
-    painter = painterResource(id = R.drawable.icon),
-    contentDescription = "User avatar"
-)
-
-// Don't: forget contentDescription (screen readers won't announce it)
-Image(painter = painterResource(id = R.drawable.icon), contentDescription = null) // Wrong
-```
-
-Source: `compose/ui/ui/src/commonMain/kotlin/androidx/compose/ui/semantics/Semantics.kt`
-
 ## Modifier.testTag — UI Testing
 
 ```kotlin
@@ -397,4 +364,4 @@ Box(
 
 ---
 
-**Summary:** Master modifier ordering, prefer `Modifier.Node` over `composed`, use `graphicsLayer` for animations, and always consider the semantic layer for accessibility.
+**Summary:** Master modifier ordering, prefer `Modifier.Node` over `composed`, and use `graphicsLayer` for animations.
