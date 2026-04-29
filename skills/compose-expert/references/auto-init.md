@@ -16,15 +16,13 @@ directory or one level up. Check file contents for any of:
 
 - `compose`
 - `androidx.compose`
-- `org.jetbrains.compose`
-- `compose-multiplatform`
 
 ```bash
 # Check working directory and parent
 for dir in . ..; do
   for file in build.gradle.kts build.gradle libs.versions.toml; do
     if [ -f "$dir/$file" ]; then
-      grep -qi "compose\|androidx\.compose\|org\.jetbrains\.compose\|compose-multiplatform" "$dir/$file" && echo "DETECTED" && break 2
+      grep -qi "compose\|androidx\.compose" "$dir/$file" && echo "DETECTED" && break 2
     fi
   done
 done

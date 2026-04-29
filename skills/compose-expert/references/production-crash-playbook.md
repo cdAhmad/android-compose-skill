@@ -318,31 +318,7 @@ val locationState by locationFlow.collectAsStateWithLifecycle(
 )
 ```
 
-### Compose Multiplatform Consideration
-
-`collectAsStateWithLifecycle` is Android-only because it depends on `androidx.lifecycle`. In Compose Multiplatform (CMP) projects, use `collectAsState()` on non-Android targets and `collectAsStateWithLifecycle()` on Android via an `expect`/`actual` pattern:
-
-```kotlin
-// commonMain
-@Composable
-expect fun <T> Flow<T>.collectAsStateMultiplatform(
-    initial: T
-): State<T>
-
-// androidMain
-@Composable
-actual fun <T> Flow<T>.collectAsStateMultiplatform(
-    initial: T
-): State<T> = collectAsStateWithLifecycle(initialValue = initial)
-
-// iosMain / desktopMain / wasmJsMain
-@Composable
-actual fun <T> Flow<T>.collectAsStateMultiplatform(
-    initial: T
-): State<T> = collectAsState(initial = initial)
-```
-
-**Rule:** On Android, always use `collectAsStateWithLifecycle` for `StateFlow` and `SharedFlow`. Reserve `collectAsState` for Compose Multiplatform common code or non-lifecycle-aware contexts only.
+**Rule:** On Android, always use `collectAsStateWithLifecycle` for `StateFlow` and `SharedFlow`. Reserve `collectAsState` for non-lifecycle-aware contexts only.
 
 ---
 

@@ -1,25 +1,20 @@
 ---
 name: compose-expert
 description: >
-  Compose and Compose Multiplatform expert skill for UI development across Android, Desktop,
-  iOS, and Web. Guides state management, view composition, animations, navigation, performance,
-  design-to-code workflows, and production crash patterns. Backed by actual source code analysis
-  from both androidx/androidx and JetBrains/compose-multiplatform-core.
+  Jetpack Compose expert skill for Android UI development. Guides state management,
+  view composition, animations, navigation, performance, design-to-code workflows,
+  and production crash patterns. Backed by actual source code analysis from androidx/androidx.
   Use this skill whenever the user mentions Compose, @Composable, remember, LaunchedEffect,
   Scaffold, NavHost, MaterialTheme, LazyColumn, Modifier, recomposition, Style, styleable,
-  MutableStyleState, Compose Multiplatform, CMP, KMP, commonMain, expect, actual,
-  ComposeUIViewController, Window composable, UIKitView, ComposeViewport, Res.drawable,
-  Res.string, or any Compose API. Also trigger when the user says "Android UI", "Kotlin UI",
-  "compose layout", "compose navigation", "compose animation", "material3", "compose styles",
-  "compose multiplatform", "desktop compose", "iOS compose", "compose web", "design to compose",
-  "build this UI", "implement this design", "Android TV", "Google TV", "tv-material",
-  "tv-foundation", "Carousel", "NavigationDrawer", "D-pad", "focus indication",
-  "10-foot UI", "living room", "tv compose", "review this PR", "review this code",
-  "check this diff", or any GitHub PR URL (github.com/.*/pull/),
-  "design system", "component library", "atomic", "reusable component",
-  "design tokens", "atoms", "molecules", or asks about modern
-  Kotlin UI development patterns. Even casual mentions like "my compose screen is slow"
-  or "how do I pass data between screens" or "how do I build a TV app" should trigger this skill.
+  MutableStyleState, or any Compose API. Also trigger when the user says "Android UI",
+  "Kotlin UI", "compose layout", "compose navigation", "compose animation", "material3",
+  "compose styles", "design to compose", "build this UI", "implement this design",
+  "review this PR", "review this code", "check this diff",
+  or any GitHub PR URL (github.com/.*/pull/), "design system", "component library",
+  "atomic", "reusable component", "design tokens", "atoms", "molecules", or asks
+  about modern Kotlin UI development patterns. Even casual mentions like
+  "my compose screen is slow" or "how do I pass data between screens"
+  or "how do I build a TV app" should trigger this skill.
   Also trigger on session_start to auto-detect Compose projects — see references/auto-init.md.
 version: 2.1.2
 ---
@@ -36,10 +31,8 @@ version: 2.1.2
 
 # Compose Expert Skill
 
-Non-opinionated, practical guidance for writing correct, performant Compose code —
-across Android, Desktop, iOS, and Web. Covers Jetpack Compose and Compose Multiplatform.
-Backed by analysis of actual source code from `androidx/androidx` and
-`JetBrains/compose-multiplatform-core`.
+Non-opinionated, practical guidance for writing correct, performant Jetpack Compose
+code for Android. Backed by analysis of actual source code from `androidx/androidx`.
 
 ## Review Mode
 
@@ -59,7 +52,6 @@ When helping with Compose code, follow this checklist:
 ### 1. Understand the request
 - What Compose layer is involved? (Runtime, UI, Foundation, Material3, Navigation)
 - Is this a state problem, layout problem, performance problem, or architecture question?
-- Is this Android-only or Compose Multiplatform (CMP)?
 
 ### 2. Analyze the design (if visual reference provided)
 - If the user shares a Figma frame, screenshot, or design spec, consult `references/design-to-compose.md`
@@ -87,9 +79,6 @@ Read the relevant reference file(s) from `references/` before answering:
 | **Styles API** (experimental): `Style {}`, `MutableStyleState`, `Modifier.styleable()` | `references/styles-experimental.md` |
 | Figma/screenshot decomposition, design tokens, spacing, modifier ordering | `references/design-to-compose.md` |
 | Production crash patterns, defensive coding, state/performance rules | `references/production-crash-playbook.md` |
-| Compose Multiplatform, `expect`/`actual`, resources (`Res.*`), migration | `references/multiplatform.md` |
-| Desktop (Window, Tray, MenuBar), iOS (UIKitView), Web (ComposeViewport) | `references/platform-specifics.md` |
-| TV Compose: Surface, Carousel, NavigationDrawer, Cards, focus, D-pad | `references/tv-compose.md` |
 | M3 motion tokens, `MotionTokens`, `MotionScheme`, animation duration, easing | `references/material3-motion.md` |
 | PR URL, code review, "review this PR", "what's wrong with this" | `references/pr-review.md` |
 | Session start, project detection | `references/auto-init.md` |
@@ -130,17 +119,16 @@ When referencing Compose internals, point to the exact source file:
 5. **Side effects exist to bridge Compose's declarative world with imperative APIs**. Use the
    right one for the job — misusing them causes bugs that are hard to trace.
 
-6. **Compose Multiplatform shares the runtime but not the platform**. UI code in
-   `commonMain` is portable. Platform-specific APIs (`LocalContext`, `BackHandler`,
-   `Window`) require `expect`/`actual` or conditional source sets.
+6. **Android platform APIs are not universal**. `LocalContext`, `BackHandler`, and
+   `dynamicColorScheme` are Android-specific. When sharing code across modules,
+   abstract platform needs behind interfaces.
 
 ## Source Code Receipts
 
 Beyond the guidance docs, this skill bundles the **actual source code** from
-`androidx/androidx` (branch: `androidx-main`) and `JetBrains/compose-multiplatform-core`
-(branch: `jb-main`). When you need to verify how something works internally, or the
-user asks "show me the actual implementation", read the raw source from
-`references/source-code/`:
+`androidx/androidx` (branch: `androidx-main`). When you need to verify how something
+works internally, or the user asks "show me the actual implementation", read the raw
+source from `references/source-code/`:
 
 | Module | Source Reference | Key Files Inside |
 |--------|-----------------|------------------|
@@ -149,7 +137,6 @@ user asks "show me the actual implementation", read the raw source from
 | Foundation | `references/source-code/foundation-source.md` | LazyList.kt, LazyGrid.kt, BasicTextField.kt, Clickable.kt, Scrollable.kt, Pager.kt |
 | Material3 | `references/source-code/material3-source.md` | MaterialTheme.kt, ColorScheme.kt, Button.kt, Scaffold.kt, TextField.kt, NavigationBar.kt |
 | Navigation | `references/source-code/navigation-source.md` | NavHost.kt, ComposeNavigator.kt, NavGraphBuilder.kt, DialogNavigator.kt |
-| CMP | `references/source-code/cmp-source.md` | Window.kt, ComposeUIViewController.kt, UIKitView.kt, ComposeViewport.kt, ResourceReader.kt |
 
 ### Two-layer approach
 1. **Start with guidance** — read the topic-specific reference (e.g., `references/state-management.md`)
@@ -164,16 +151,5 @@ androidx/androidx (branch: androidx-main)
 ├── compose/foundation/foundation/src/commonMain/kotlin/androidx/compose/foundation/
 ├── compose/material3/material3/src/commonMain/kotlin/androidx/compose/material3/
 ├── compose/navigation/navigation-compose/src/commonMain/kotlin/androidx/navigation/compose/
-├── tv/tv-material/src/main/java/androidx/tv/material3/
-└── tv/tv-foundation/src/main/java/androidx/tv/foundation/
 
-compose-multiplatform-core (branch: jb-main)
-├── compose/ui/ui/src/desktopMain/kotlin/androidx/compose/ui/window/
-├── compose/ui/ui/src/iosMain/kotlin/androidx/compose/ui/window/
-├── compose/ui/ui/src/webMain/kotlin/androidx/compose/ui/window/
-├── compose/ui/ui/src/skikoMain/kotlin/androidx/compose/ui/
-└── compose/foundation/foundation/src/skikoMain/kotlin/androidx/compose/foundation/
-
-compose-multiplatform (resources library)
-└── components/resources/library/src/commonMain/
 ```

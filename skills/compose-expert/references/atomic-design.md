@@ -1,6 +1,6 @@
 # Atomic Design System Reference
 
-Building reusable, hierarchical component systems in Jetpack Compose and Compose Multiplatform.
+Building reusable, hierarchical component systems in Jetpack Compose.
 Based on Brad Frost's atomic design methodology, mapped to Compose primitives.
 
 ---

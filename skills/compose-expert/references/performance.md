@@ -594,30 +594,3 @@ Canvas(Modifier.fillMaxSize()) { ... }
 Canvas(Modifier.fillMaxWidth().height(200.dp)) { ... }
 ```
 
----
-
-## Compose Multiplatform Performance
-
-Performance tooling differs across platforms:
-
-| Tool | Android | Desktop | iOS | Web |
-|------|---------|---------|-----|-----|
-| Baseline Profiles | Yes | No | No | No |
-| Macrobenchmark | Yes | No | No | No |
-| Layout Inspector | Yes (AS) | No | No | No |
-| Profiling | Android Studio | JMH | Instruments | Browser DevTools |
-| R8/ProGuard | Yes | ProGuard separately | N/A (Kotlin/Native) | N/A |
-
-iOS-specific:
-- Kotlin/Native has different GC behavior than Android ART
-- Enable ProMotion with `CADisableMinimumFrameDurationOnPhone = true` in Info.plist
-- Use configurable frame rate API: increase for animations, decrease for static content
-
-Desktop JVM:
-- Different GC characteristics (G1GC vs ART)
-- JIT compilation warms up differently
-
-Web/WASM:
-- Renders entire canvas per frame (unlike DOM partial repaints)
-- WASM GC behavior differs from JVM
-- Bundle size impacts initial load time

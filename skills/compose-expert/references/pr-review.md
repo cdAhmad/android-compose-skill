@@ -79,7 +79,7 @@ team's own conventions, not deviations from an external style guide.
 
 ### Step 4 — Run the checklist
 
-Evaluate every changed composable against all 6 categories below.
+Evaluate every changed composable against all 5 categories below.
 Use the **full file** from Step 2, not the diff from Step 1.
 
 ### Step 5 — Output the report
@@ -184,18 +184,7 @@ Cross-reference with `references/material3-motion.md` for token values and easin
   `AnimationSpec` parameter should use `MaterialTheme.motionScheme.defaultSpatialSpec()` /
   `defaultEffectsSpec()` to be theme-motion-aware.
 
-### Category 4: CMP Compatibility
-
-Apply only to files whose path contains `commonMain` or has no platform-specific path segment.
-
-- [ ] No `android.*` imports (`android.content.Context`, `android.util.Log`, etc.)
-- [ ] No `androidx.*` imports that are Android-only. Check `references/multiplatform.md`
-  API availability matrix for what is available in `commonMain`.
-- [ ] No `LocalContext.current` — not available in CMP `commonMain`
-- [ ] No `Activity`, `Context`, or `Application` references
-- [ ] Resources via `Res.drawable.*` / `Res.string.*` — not `R.drawable.*` / `R.string.*`
-
-### Category 5: Lists & Keys
+### Category 4: Lists & Keys
 
 - [ ] **Every `items()` call has a `key = {}`** in `LazyColumn`, `LazyRow`, `LazyVerticalGrid`,
   `LazyHorizontalGrid`. Missing keys cause incorrect animations and item reuse bugs.
@@ -214,11 +203,8 @@ Apply only to files whose path contains `commonMain` or has no platform-specific
 - [ ] **No `LazyColumn` directly nested inside `LazyColumn`** without a fixed height on the inner
   one. Unbounded nested lazy lists throw `java.lang.IllegalStateException` at runtime.
 
-- [ ] **`TvLazyRow` / `TvLazyColumn` / `TvLazyVerticalGrid` / `TvLazyHorizontalGrid` from
-  `tv-foundation` flagged as deprecated.** Replace with standard Foundation equivalents.
-  See migration table in `references/tv-compose.md` Section 5.
 
-### Category 6: Atomic Design
+### Category 5: Atomic Design
 
 Cross-reference with `references/atomic-design.md` for token patterns and naming rules.
 

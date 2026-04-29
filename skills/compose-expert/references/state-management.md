@@ -542,39 +542,3 @@ val filteredItems = repository.items
     .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 ```
 
----
-
-## Compose Multiplatform Notes
-
-### rememberSaveable and Bundle
-
-`rememberSaveable`, `Bundle`, and `@Parcelize` are **Android-only**. On CMP targets:
-
-```kotlin
-// Android: @Parcelize works
-@Parcelize
-data class SearchParams(val query: String, val filters: List<String>) : Parcelable
-
-// CMP: use @Serializable instead
-@Serializable
-data class SearchParams(val query: String, val filters: List<String>)
-```
-
-For state persistence across configuration changes in CMP, use kotlinx.serialization-based custom `Saver` implementations.
-
-### collectAsStateWithLifecycle
-
-`collectAsStateWithLifecycle()` is in `androidx.lifecycle:lifecycle-runtime-compose` -- it's Android-specific.
-
-```kotlin
-// Android: lifecycle-aware, stops collecting when paused
-val state by viewModel.uiState.collectAsStateWithLifecycle()
-
-// CMP commonMain: basic collection, does NOT stop in background
-val state by viewModel.uiState.collectAsState()
-
-// CMP with multiplatform lifecycle (lifecycle-runtime-compose:2.10.0+):
-// collectAsStateWithLifecycle() available in commonMain
-```
-
-On CMP without the multiplatform lifecycle library, flows continue collecting when the app is backgrounded -- be aware of battery and performance implications.

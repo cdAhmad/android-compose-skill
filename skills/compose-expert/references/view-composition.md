@@ -739,7 +739,7 @@ private fun ConversationRowPreview(
 }
 ```
 
-**CMP note:** In `commonMain`, use `@Preview` from `org.jetbrains.compose.ui.tooling.preview`. Device-specific previews (`Devices.TABLET`) are Android-only.
+Device-specific previews (`Devices.TABLET`) require the Android `@Preview` annotation from `androidx.compose.ui.tooling.preview`.
 
 ## Adaptive Layouts
 

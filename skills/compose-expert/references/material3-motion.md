@@ -4,9 +4,8 @@ Source: `compose/material3/material3/src/commonMain/kotlin/androidx/compose/mate
 and `compose/material3/material3/src/commonMain/kotlin/androidx/compose/material3/MotionScheme.kt`
 in `androidx/androidx` (branch: `androidx-main`)
 
-CMP compatibility: `MotionTokens`, `MotionScheme`, and all easing constants are in
-`androidx.compose.material3` — available on all CMP targets (Android, Desktop, iOS, Web)
-since M3 1.2.0. No platform guards needed.
+`MotionTokens`, `MotionScheme`, and all easing constants are in
+`androidx.compose.material3` — available since M3 1.2.0.
 
 ---
 
